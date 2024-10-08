@@ -10,8 +10,10 @@
             <div id="contact">
                 <ul>
                     <li>
-                        <a href="tel:{{telephone}}">{{telephone}}</a> ·
-                        <a href="mailto:{{email}}">{{email}}</a> ·
+                        {% if telephone %}<a href="tel:{{telephone}}"
+                            >{{telephone}}</a
+                        >
+                        ·{% endif %} <a href="mailto:{{email}}">{{email}}</a> ·
                         <a href="http://github.com/{{github}}"
                             >github.com/{{github}}</a
                         >
