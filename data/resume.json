@@ -1,0 +1,87 @@
+{
+  "fullname": "Jake Goritski",
+  "email": "jake@gorit.ski",
+  "github": "drproteus",
+  "keywords": "jacob goritski, jake goritski",
+  "experience": [
+    {
+      "title": "Senior Software Engineer",
+      "company": "HeadSpin",
+      "location": "USA (Remote)",
+      "start_date": "Mar. 2022",
+      "end_date": "Present",
+      "highlights": [
+        "Refactored legacy data-platform models and controllers for massive performance improvements.",
+        "Developed, tested, and deployed new services for replicating platform data to customers' replica databases for analysis, as well as processes to handle clean-up and corrupt data.",
+        "Developed new UI components and pages for internal and external use in Vue and React.",
+        "Migrated and built atop existing CLI tooling to Click and provided significant quality-of-life improvements to the CLI in both performance and usability.",
+        "Fielded support and quickly reacted to bugs in the data-platform, coordinating effectively with a distributed team across all timezones."
+      ]
+    },
+    {
+      "title": "Senior Software Engineer",
+      "company": "Smallhold",
+      "location": "Brookyln, NY (Remote)",
+      "start_date": "Mar. 2021",
+      "end_date": "Jan. 2022",
+      "highlights": [
+        "Led the development of Python backend system to monitor and collect sensor data (temperature, humidity, etc.) from a distributed network of fully-contained and automated mushroom mini-farms, which communicated over MQTT.",
+        "Designed and prototyped local farm control software to be run in larger (warehouse) farms.",
+        "Worked with UI contractors to design a responsive and modern web-based interface for monitoring warehouse farm chambers.",
+        "Prototyped possible methods of automating control parameters over time (referred to as \"recipes\") including the interface to orchestrate these, as well as provide more manual inputs remotely (or locally via chamber touch panels). ",
+        "Migrated NodeRed automations targeting Google Sheets to more maintainable NodeJS applications/scripts outputting standard CSV."
+      ]
+    },
+    {
+      "title": "Software Enginer",
+      "company": "FindMine",
+      "location": "Manhattan, NY (Remote)",
+      "start_date": "May 2020",
+      "end_date": "Nov. 2020",
+      "highlights": [
+        "Designed GraphQL API schema for new version of backend services and wrote extensive test cases to be consumed by junior developers for test-driven development.",
+        "Following the departure of contractor, became responsible for transitioning the infrastructure defined by Terraform and orchestrated by Ansible on Google Cloud Platform.",
+        "Developed and maintained Airflow data-engineering workflows to provide interaction metrics to analysts using Google BigQuery as data warehouse."
+      ]
+    },
+    {
+      "title": "Software Engineer",
+      "company": "DrChrono",
+      "location": "Baltimore, MD",
+      "start_date": "Jan. 2017",
+      "end_date": "Oct. 2019",
+      "highlights": [
+        "Developed billing and RCM backend (Django, Celery), including extensive test cases for these critical processes. ",
+        "Built and made fixes to AngularJS web UI.",
+        "Responsible for public facing website backend and frontend asset bundling, and eventually designed and implemented CI/CD for automated deployment.",
+        "Developed Airflow connectors to interface with unsupported data sources to improve marketing's lead generation pipelines.",
+        "Implemented CI/CD for Airflow with Ansible, Docker, and CircleCI on AWS EC2 instances with data warehoused in Redshift."
+      ]
+    },
+    {
+      "title": "Performance Automation Engineer",
+      "company": "Apple",
+      "location": "Santa Clara, CA",
+      "start_date": "Jan. 2015",
+      "end_date": "Sept. 2015",
+      "highlights": [
+        "Developed Mac desktop automation test suites with Python and Swift.",
+        "Designed and automated workflows providing performance metrics for the team's analysts.",
+        "Provided quick workarounds, scripts, and patches for upstream bugs to limit breaking changes' effects on data collection.",
+        "Helped maintain an extensive farm of Mac desktops, laptops, and unsupported prototypes, to be used in automation.",
+        "Wrote UI tools in Swift to track and control performance test progress on lab machines."
+      ]
+    }
+  ],
+  "education": [
+    {
+      "school": "University of Rochester",
+      "degree": "BSc. Mathematics, 2014",
+      "highlights": [
+        "Distinction in Mathematics",
+        "Theatre production and performance"
+      ]
+    }
+  ],
+  "skills": ["Python", "SQL", "Go", "Bash", "JavaScript", "Docker"]
+}
