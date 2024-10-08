@@ -77,7 +77,11 @@
   "education": [
     {
       "school": "University of Rochester",
-      "degree": "BSc. Mathematics, 2014"
+      "degree": "BSc. Mathematics, 2014",
+      "highlights": [
+        "Distinction in Mathematics",
+        "Theatre production and performance"
+      ]
     }
   ],
   "skills": ["Python", "SQL", "Go", "Bash", "JavaScript", "Docker"]
