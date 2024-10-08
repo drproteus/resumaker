@@ -9,6 +9,11 @@ env = Environment(
 def render():
     template = env.get_template("resume.html")
     data = {
+        "fullname": "Jake Goritski",
+        "telephone": "(862) 200-5555",
+        "email": "jake@gorit.ski",
+        "github": "drproteus",
+        "keywords": "jake goritski, jacob goritski",
         "experiences": [
             {
                 "title": "Warlock",
