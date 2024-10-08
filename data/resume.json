@@ -1,15 +1,15 @@
 {
-    "fullname": "Tang Ping",
-    "telephone": "(862) 200-5555",
-    "email": "coolguy@website.biz",
-    "github": "tangping",
-    "keywords": "keyword",
+    "fullname": "Jake Goritski",
+    "telephone": "(862) 200-4916",
+    "email": "jake@gorit.ski",
+    "github": "drproteus",
+    "keywords": "jacob goritski, jake goritski",
     "experiences": [
         {
-            "title": "Warlock",
-            "company": "Wizards Inc.",
-            "location": "Jupiter",
-            "start_date": "Mar. 2020",
+            "title": "Senior Software Engineer",
+            "company": "HeadSpin",
+            "location": "USA, Remote",
+            "start_date": "Mar. 2021",
             "end_date": "Present",
             "entries": [
                 "Did some stuff.",
@@ -19,15 +19,11 @@
     ],
     "educations": [
         {
-            "school": "Gizmonics Institute",
-            "degree": "MSc. Digital Voodoo",
-            "description": [
-                "Digital Voodoo studies with a minor in Underwater Basketweaving",
-                "Graduated with Abnormal Distinction"
-            ]
+            "school": "University of Rochester",
+            "degree": "BSc. Mathematics, 2014"
         }
     ],
     "skills": [
-        "Dark magic", "Light magic", "Orb juggling"
+        "Python", "SQL", "Go", "Bash"
     ]
 }
