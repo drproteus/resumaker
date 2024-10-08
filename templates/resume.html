@@ -17,6 +17,7 @@
     <div id="resume">
       <div class="entry">
       </div>
+      {% if experiences %}
       <div class="entry">
         <div class="title">Experience</div>
         <div class="content">
@@ -28,6 +29,8 @@
           {% endfor %}
         </div>
       </div>
+      {% endif %}
+      {% if educations %}
       <div class="entry">
         <div class="title">Education</div>
         <div class="content">
@@ -39,6 +42,18 @@
         {% endfor %}
         </div>
       </div>
+      {% endif %}
+      {% if skills %}
+      <div class="entry">
+        <div class="title">Skills</div>
+        <div class="content">
+        <!-- Skill entries -->
+        {% with skills=skills %}
+        {% include "skills.html" %}
+        {% endwith %}
+        </div>
+      </div>
+      {% endif %}
       <br><br>
     </div>
   </div>
