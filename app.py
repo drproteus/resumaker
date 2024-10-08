@@ -23,14 +23,15 @@ def write(html):
 
 def write_pdf(html):
     options = {
-        "scale": 1.0,
+        "scale": 0.8,
         "format": "Letter",
         "margin": {
-            "top": "0.75in",
-            "right": "0.75in",
-            "bottom": "0.75in",
-            "left": "0.75in",
-        }
+            "top": "0.50in",
+            "right": "0.50in",
+            "bottom": "0.50in",
+            "left": "0.50in",
+        },
+        "pageRanges": "1"
     }
     pdfgen.sync.from_string(html, "./build/resume.pdf", options=options)
 
