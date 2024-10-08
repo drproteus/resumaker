@@ -1,0 +1,45 @@
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width">
+  <meta name="keywords" content="jake goritski, jacob goritski">
+  {% include "style.html" %}
+</head>
+<body>
+  <div id="container">
+    <div id="contact">
+      <ul>
+        <li><a href="tel:8622004916">(862) 200-4916</a> · <a href="mailto:jake@gorit.ski">jake@gorit.ski</a> · <a href="http://github.com/drproteus">github.com/drproteus</a></li>
+      </ul>
+    </div>
+    <h1>Jake Goritski</h1>
+    <div id="diz"><img src="https://static.skinet.org/images/dizbanner.png"></div>
+    <div id="resume">
+      <div class="entry">
+      </div>
+      <div class="entry">
+        <div class="title">Experience</div>
+        <div class="content">
+          <!-- Experience entries -->
+          {% for experience in experiences %}
+          {% with experience=experience %}
+          {% include "experience.html" %}
+          {% endwith %}
+          {% endfor %}
+        </div>
+      </div>
+      <div class="entry">
+        <div class="title">Education</div>
+        <div class="content">
+        <!-- Education entries -->
+        {% for education in educations %}
+        {% with education=education %}
+        {% include "education.html" %}
+        {% endwith %}
+        {% endfor %}
+        </div>
+      </div>
+      <br><br>
+    </div>
+  </div>
+</body>
