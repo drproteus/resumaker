@@ -1,6 +1,5 @@
-<b>{{education.school}} · {{education.degree}}</b><br>
+<b>{{education.school}} · {{education.degree}}</b><br />
 <p>
-{% for line in education.description %}
-{{ line }}<br>
-{% endfor %}
+    {% for highlight in education.highlights %} {{ highlight }}<br />
+    {% endfor %}
 </p>

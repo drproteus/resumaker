@@ -1,60 +1,60 @@
 <html>
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width">
-  <meta name="keywords" content="{{keywords}}">
-  {% include "style.html" %}
-</head>
-<body>
-  <div id="container">
-    <div id="contact">
-      <ul>
-        <li><a href="tel:{{telephone}}">{{telephone}}</a> · <a href="mailto:{{email}}">{{email}}</a> · <a href="http://github.com/{{github}}">github.com/{{github}}</a></li>
-      </ul>
-    </div>
-    <h1>{{fullname}}</h1>
-    <div id="diz"><img src="https://static.skinet.org/images/dizbanner.png"></div>
-    <div id="resume">
-      <div class="entry">
-      </div>
-      {% if experiences %}
-      <div class="entry">
-        <div class="title">Experience</div>
-        <div class="content">
-          <!-- Experience entries -->
-          {% for experience in experiences %}
-          {% with experience=experience %}
-          {% include "experience.html" %}
-          {% endwith %}
-          {% endfor %}
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width" />
+        <meta name="keywords" content="{{keywords}}" />
+        {% include "style.html" %}
+    </head>
+    <body>
+        <div id="container">
+            <div id="contact">
+                <ul>
+                    <li>
+                        <a href="tel:{{telephone}}">{{telephone}}</a> ·
+                        <a href="mailto:{{email}}">{{email}}</a> ·
+                        <a href="http://github.com/{{github}}"
+                            >github.com/{{github}}</a
+                        >
+                    </li>
+                </ul>
+            </div>
+            <h1>{{fullname}}</h1>
+            <div id="diz">
+                <img src="https://static.skinet.org/images/dizbanner.png" />
+            </div>
+            <div id="resume">
+                <div class="entry"></div>
+                {% if experience %}
+                <div class="entry">
+                    <div class="title">Experience</div>
+                    <div class="content">
+                        <!-- Experience entries -->
+                        {% for item in experience %} {% with experience=item %}
+                        {% include "experience.html" %} {% endwith %} {% endfor
+                        %}
+                    </div>
+                </div>
+                {% endif %} {% if education %}
+                <div class="entry">
+                    <div class="title">Education</div>
+                    <div class="content">
+                        <!-- Education entries -->
+                        {% for item in education %} {% with education=item %} {%
+                        include "education.html" %} {% endwith %} {% endfor %}
+                    </div>
+                </div>
+                {% endif %} {% if skills %}
+                <div class="entry">
+                    <div class="title">Skills</div>
+                    <div class="content">
+                        <!-- Skill entries -->
+                        {% with skills=skills %} {% include "skills.html" %} {%
+                        endwith %}
+                    </div>
+                </div>
+                {% endif %}
+                <br /><br />
+            </div>
         </div>
-      </div>
-      {% endif %}
-      {% if educations %}
-      <div class="entry">
-        <div class="title">Education</div>
-        <div class="content">
-        <!-- Education entries -->
-        {% for education in educations %}
-        {% with education=education %}
-        {% include "education.html" %}
-        {% endwith %}
-        {% endfor %}
-        </div>
-      </div>
-      {% endif %}
-      {% if skills %}
-      <div class="entry">
-        <div class="title">Skills</div>
-        <div class="content">
-        <!-- Skill entries -->
-        {% with skills=skills %}
-        {% include "skills.html" %}
-        {% endwith %}
-        </div>
-      </div>
-      {% endif %}
-      <br><br>
-    </div>
-  </div>
-</body>
+    </body>
+</html>
