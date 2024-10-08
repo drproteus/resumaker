@@ -4,24 +4,24 @@
     "email": "coolguy@website.biz",
     "github": "tangping",
     "keywords": "keyword",
-    "experiences": [
+    "experience": [
         {
             "title": "Warlock",
             "company": "Wizards Inc.",
             "location": "Jupiter",
             "start_date": "Mar. 2020",
             "end_date": "Present",
-            "entries": [
+            "highlights": [
                 "Did some stuff.",
                 "More stuff."
             ]
         }
     ],
-    "educations": [
+    "education": [
         {
             "school": "Gizmonics Institute",
             "degree": "MSc. Digital Voodoo",
-            "description": [
+            "highlights": [
                 "Digital Voodoo studies with a minor in Underwater Basketweaving",
                 "Graduated with Abnormal Distinction"
             ]

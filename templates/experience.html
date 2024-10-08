@@ -2,8 +2,8 @@
 {{experience.start_date}} - {{experience.end_date}}<br></b>
 <p>
   <ul>
-    {% for entry in experience.entries %} 
-    <li>{{ entry }}</li>
+    {% for highlight in experience.highlights %}
+    <li>{{ highlight }}</li>
     {% endfor %}
   </ul>
 </p>
