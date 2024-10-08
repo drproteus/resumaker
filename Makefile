@@ -4,3 +4,4 @@ build/resume.html:
 
 clean:
 	rm -f build/resume.html
+	rm -f build/resume.pdf
