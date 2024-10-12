@@ -48,9 +48,7 @@ jobs:
           flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
       - name: Build
         run: |
-          make
-      - name: Rename
-        run: mv build/resume.html build/index.html
+          make pages
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
