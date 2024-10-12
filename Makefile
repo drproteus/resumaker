@@ -8,7 +8,7 @@ build/resume.pdf:
 	mkdir -p build/
 	python app.py --pdf
 
-build/index.html:
+build/index.html: html
 	cp build/resume.html build/index.html
 
 html: build/resume.html
