@@ -1,5 +1,6 @@
 import json
 import pdfgen
+import click
 from jinja2 import Environment, PackageLoader, select_autoescape
 
 env = Environment(
@@ -42,7 +43,26 @@ def write_pdf(html):
     pdfgen.sync.from_string(html, RESUME_PDF_PATH, options=PDF_OPTIONS)
 
 
-if __name__ == "__main__":
+@click.command("resumaker")
+@click.option(
+    "--html",
+    "html_out",
+    is_flag=True,
+    default=False,
+)
+@click.option(
+    "--pdf",
+    "pdf_out",
+    is_flag=True,
+    default=False,
+)
+def main(html_out, pdf_out):
     html = render()
-    write(html)
-    write_pdf(html)
+    if html_out:
+        write(html)
+    if pdf_out:
+        write_pdf(html)
+
+
+if __name__ == "__main__":
+    main()
