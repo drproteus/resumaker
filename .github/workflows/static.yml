@@ -49,6 +49,8 @@ jobs:
       - name: Build
         run: |
           make
+      - name: Rename
+        run: mv build/resume.html build/index.html
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
