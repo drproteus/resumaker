@@ -1,33 +1,34 @@
 {
-    "fullname": "Tang Ping",
-    "telephone": "(862) 200-5555",
+    "fullname": "Cool Guy",
     "email": "coolguy@website.biz",
-    "github": "tangping",
-    "keywords": "keyword",
+    "website": {
+        "name": "website.biz",
+        "url": "https://website.biz/coolguy"
+    },
     "experience": [
         {
-            "title": "Warlock",
+            "title": "Assistant Warlock",
             "company": "Wizards Inc.",
-            "location": "Jupiter",
-            "start_date": "Mar. 2020",
-            "end_date": "Present",
+            "location": "Inner Eye Subsystems",
+            "start_date": "Mar. 1892",
+            "end_date": "Tomorrow",
             "highlights": [
-                "Did some stuff.",
-                "More stuff."
+                "Fought back eldritch terror.",
+                "Repaired routine paper jams.",
             ]
         }
     ],
     "education": [
         {
             "school": "Gizmonics Institute",
-            "degree": "MSc. Digital Voodoo",
+            "degree": "MSc. N-Dimensional Mathematics",
             "highlights": [
-                "Digital Voodoo studies with a minor in Underwater Basketweaving",
-                "Graduated with Abnormal Distinction"
+                "Brought forth the end of days.",
+                "Averted the end of days."
             ]
         }
     ],
     "skills": [
-        "Dark magic", "Light magic", "Orb juggling"
+        "Black magic", "Blood magic", "Orb pondering"
     ]
 }

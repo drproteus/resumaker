@@ -14,9 +14,9 @@
                             >{{telephone}}</a
                         >
                         ·{% endif %} <a href="mailto:{{email}}">{{email}}</a> ·
-                        <a href="https://github.com/{{github}}"
-                            >github.com/{{github}}</a
-                        >
+                        {% if website %}
+                        <a href="{{website.url}}">{{website.name}}</a>
+                        {% endif %}
                     </li>
                 </ul>
             </div>
