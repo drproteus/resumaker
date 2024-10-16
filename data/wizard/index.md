@@ -9,3 +9,11 @@ The following are examples of Resumaker's output:
 
 * [resume.pdf](./resume.pdf)
 * [resume.html](./resume.html)
+
+```
+{
+  "fullname": "Daisuke Jigen",
+  "experience": [{"title": "Bodyguard"}],
+  "skills": ["marksmanship", "friendship"]
+}
+```
