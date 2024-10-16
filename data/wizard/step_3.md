@@ -4,7 +4,7 @@ Thanks for taking a look at this [project](https://github.com/drproteus/resumake
 
 Other projects I'm working on:
 
-* [pyzdl](https://github.com/drproteus/pyzdl)
+* [pyzdl](https://drproteus.github.io/pyzdl)
 * [lastfm-grid](https://github.com/drproteus/lastfm-grid)
 
 You can follow me across the net [here](https://linktr.ee/drproteus).
