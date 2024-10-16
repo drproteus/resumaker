@@ -12,42 +12,44 @@ The generated `resume.html` can be found in `build/`.
 
 
 # Example
-![image](https://github.com/user-attachments/assets/a86a5d9a-2662-436c-9dce-c001ee3474af)
+![Screenshot 2024-10-16 at 11-07-38 ](https://github.com/user-attachments/assets/301504c1-6ef4-406e-86a2-33cdb5ad047b)
 
 ```json
 {
-  "fullname": "Tang Ping",
-  "telephone": "(862) 200-5555",
+  "fullname": "Cool Guy",
   "email": "coolguy@website.biz",
-  "github": "tangping",
-  "keywords": "keyword",
+  "telephone": "973-808-1337",
+  "website": {
+    "name": "github.com/coolguy",
+    "url": "https://github.com/coolguy"
+  },
   "experience": [
     {
-      "title": "Warlock",
+      "title": "Assistant Warlock",
       "company": "Wizards Inc.",
-      "location": "Jupiter",
-      "start_date": "Mar. 2020",
-      "end_date": "Present",
+      "location": "Inner Eye Subsystems",
+      "start_date": "Mar. 1892",
+      "end_date": "Tomorrow",
       "highlights": [
-        "Did some stuff.",
-        "More stuff."
+        "Fought back eldritch terror.",
+        "Repaired routine paper jams."
       ]
     }
   ],
   "education": [
     {
       "school": "Gizmonics Institute",
-      "degree": "MSc. Digital Voodoo",
+      "degree": "MSc. N-Dimensional Mathematics",
       "highlights": [
-        "Digital Voodoo studies with a minor in Underwater Basketweaving",
-        "Graduated with Abnormal Distinction"
+        "Brought forth the end of days.",
+        "Averted the end of days."
       ]
     }
   ],
   "skills": [
-    "Dark magic",
-    "Light magic",
-    "Orb juggling"
+    "Black magic",
+    "Blood magic",
+    "Orb pondering"
   ]
 }
 ```
