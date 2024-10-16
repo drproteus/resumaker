@@ -20,15 +20,12 @@
                         id="wizard-body-sidebar-icon"
                         src="./images/math.png"
                     />
-                    <!--
-                    <img
-                        id="wizard-body-sidebar-mii"
-                        src="https://static.skinet.org/images/miimoto.png"
-                    />
-                    -->
                 </div>
                 <div id="wizard-body-content">
-                    <p>{% markdown %}{{content|safe}}{% endmarkdown %}</p>
+                    {% markdown %}{{content|safe}}{% endmarkdown %}
+                    {% if show_mii %}
+                    <img id="mii" src="./images/mii.png"/>
+                    {% endif %}
                 </div>
             </div>
             <div id="wizard-button-row">
