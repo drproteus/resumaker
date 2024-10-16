@@ -15,7 +15,21 @@ html: build/resume.html
 
 pdf: build/resume.pdf
 
-pages: html pdf build/index.html
+pages/index.html:
+	python app.py --pages
+	-cp -av ./assets/css ./pages/css
+	-cp -av ./assets/images ./pages/images
 
+pages: pages/index.html
+
+.PHONY: serve-pages
+serve-pages:
+	python -m http.server -d pages
+
+.PHONY: clean-pages
+clean-pages:
+	rm -rf pages/
+
+.PHONY: clean
 clean:
 	rm -f build/*

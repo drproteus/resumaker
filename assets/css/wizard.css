@@ -1,0 +1,72 @@
+html {
+    background: teal;
+}
+
+#wizard-window {
+    width: 500px;
+    height: 360px;
+    margin: auto;
+}
+
+.wizard-body {
+    height: 296px;
+    background: white;
+    padding: 0;
+    margin-top: -6px;
+    margin-right: -8px;
+    margin-left: -8px;
+    display: flex;
+}
+
+h1,
+h2,
+h3,
+h4 {
+    font-family: "Arial";
+    margin-top: 0;
+    margin-bottom: 0;
+}
+
+#wizard-body-sidebar {
+    background-image: linear-gradient(blue, black);
+    width: 160px;
+    height: 100%;
+    position: relative;
+}
+
+#wizard-body-sidebar-icon {
+    margin: 0;
+    position: absolute;
+    height: 64px;
+    top: 10px;
+    right: 10px;
+    opacity: 0.5;
+}
+
+#wizard-body-sidebar-mii {
+    display: none;
+    margin: 0;
+    height: 128px;
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    opacity: 0.5;
+}
+
+#wizard-body-content {
+    margin: 10px;
+    padding: 0;
+}
+
+#wizard-page-title {
+    font-size: 32px;
+}
+
+#wizard-button-row {
+    padding-top: 10px;
+    float: right;
+}
+
+#button-cancel {
+    margin-left: 20px;
+}
