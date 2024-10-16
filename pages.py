@@ -7,7 +7,7 @@ from jinja2 import Environment, PackageLoader, select_autoescape
 env = Environment(
     loader=PackageLoader("app"),
     autoescape=select_autoescape(),
-    extensions=["jinja_markdown.MarkdownExtension"]
+    extensions=["jinja_markdown.MarkdownExtension"],
 )
 
 WINDOW_TEMPLATE = "wizard/window.html"

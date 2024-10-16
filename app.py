@@ -26,21 +26,13 @@ RESUME_HTML_PATH = "./build/resume.html"
 RESUME_PDF_PATH = "./build/resume.pdf"
 
 
-def render():
-    template = env.get_template(RESUME_TEMPLATE)
-    with open(RESUME_JSON_PATH, "r") as f:
-        data = json.load(f)
-    html = template.render(data)
-    return html
-
-
-def write(html):
-    with open(RESUME_HTML_PATH, "w") as f:
+def write(html, out_path=RESUME_HTML_PATH):
+    with open(out_path, "w") as f:
         f.write(html)
 
 
-def write_pdf(html):
-    pdfgen.sync.from_string(html, RESUME_PDF_PATH, options=PDF_OPTIONS)
+def write_pdf(html, pdf_path=RESUME_PDF_PATH, pdf_options=PDF_OPTIONS):
+    pdfgen.sync.from_string(html, pdf_path, options=pdf_options)
 
 
 @click.command("resumaker")
@@ -56,12 +48,23 @@ def write_pdf(html):
     is_flag=True,
     default=False,
 )
-def main(html_out, pdf_out):
-    html = render()
+@click.option(
+    "--data",
+    "data_path",
+    type=click.Path(exists=True),
+    default=RESUME_JSON_PATH,
+)
+def main(html_out, pdf_out, data_path):
+    template = env.get_template(RESUME_TEMPLATE)
+    with open(data_path, "r") as f:
+        data = json.load(f)
+    html = template.render(data)
     if html_out:
         write(html)
     if pdf_out:
         write_pdf(html)
+    if not html_out and not pdf_out:
+        click.echo(html)
 
 
 if __name__ == "__main__":
