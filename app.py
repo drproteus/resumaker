@@ -1,7 +1,9 @@
 import json
 import pdfgen
 import click
+from urllib.parse import urlparse
 from jinja2 import Environment, PackageLoader, select_autoescape
+from lib.util import load_resume_data
 
 env = Environment(
     loader=PackageLoader("app"),
@@ -56,8 +58,7 @@ def write_pdf(html, pdf_path=RESUME_PDF_PATH, pdf_options=PDF_OPTIONS):
 )
 def main(html_out, pdf_out, data_path):
     template = env.get_template(RESUME_TEMPLATE)
-    with open(data_path, "r") as f:
-        data = json.load(f)
+    data = load_resume_data(data_path)
     html = template.render(data)
     if html_out:
         write(html)
