@@ -1,5 +1,6 @@
 import json
 import pdfgen
+import os
 import click
 from jinja2 import Environment, PackageLoader, select_autoescape
 
@@ -43,6 +44,13 @@ def write_pdf(html):
     pdfgen.sync.from_string(html, RESUME_PDF_PATH, options=PDF_OPTIONS)
 
 
+def build_pages():
+    template = env.get_template("wizard/window.html")
+    os.makedirs("./pages", exist_ok=True)
+    with open("./pages/index.html", "w") as f:
+        f.write(template.render())
+
+
 @click.command("resumaker")
 @click.option(
     "--html",
@@ -56,12 +64,21 @@ def write_pdf(html):
     is_flag=True,
     default=False,
 )
-def main(html_out, pdf_out):
+@click.option(
+    "--pages",
+    "pages_out",
+    is_flag=True,
+    default=False
+)
+def main(html_out, pdf_out, pages_out):
     html = render()
     if html_out:
         write(html)
     if pdf_out:
         write_pdf(html)
+    if pages_out:
+        build_pages()
+
 
 
 if __name__ == "__main__":
