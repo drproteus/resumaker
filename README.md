@@ -23,9 +23,9 @@ The generated `resume.html` can be found in `build/`.
   "experience": [
     {
       "title": "Assistant Warlock",
-      "company": "Wizards Inc.",
-      "location": "Inner Eye Subsystems",
-      "start_date": "Mar. 1892",
+      "company": "Inner Eye Subsystems",
+      "location": "Neo New Amsterdam",
+      "start_date": "Mar. 1A92",
       "end_date": "Tomorrow",
       "highlights": [
         "Fought back eldritch terror.",
