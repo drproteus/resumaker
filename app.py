@@ -1,9 +1,8 @@
-import json
 import pdfgen
 import click
-from urllib.parse import urlparse
 from jinja2 import Environment, PackageLoader, select_autoescape
 from lib.util import load_resume_data
+
 
 env = Environment(
     loader=PackageLoader("app"),
