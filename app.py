@@ -1,6 +1,5 @@
 import json
 import pdfgen
-import os
 import click
 from jinja2 import Environment, PackageLoader, select_autoescape
 
@@ -57,8 +56,7 @@ def write_pdf(html):
     is_flag=True,
     default=False,
 )
-@click.option("--pages", "pages_out", is_flag=True, default=False)
-def main(html_out, pdf_out, pages_out):
+def main(html_out, pdf_out):
     html = render()
     if html_out:
         write(html)

@@ -36,8 +36,10 @@ def build_pages():
 
     def get_index(page_name):
         if page_name == "index":
+            # index.md is required to start
             return 0
         else:
+            # Assuming step_N.md for remaining templates
             return int(re.search(r"step_(\d+)", page_name).group(1))
 
     pages = sorted(pages, key=lambda p: get_index(p["page_name"]))
@@ -56,7 +58,7 @@ def build_pages():
                 page_data["next_page"] = pages[i + 1]["output"]
             except (IndexError, KeyError):
                 page_data["next_page"] = filename
-            with open(os.path.join(PAGES_DIR, filename), "w")  as f:
+            with open(os.path.join(PAGES_DIR, filename), "w") as f:
                 f.write(template.render(page_data))
 
 
