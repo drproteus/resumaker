@@ -5,7 +5,7 @@ Thanks for taking a look at this [project](https://github.com/drproteus/resumake
 Other projects I'm working on:
 
 * [pyzdl](https://drproteus.github.io/pyzdl)
-* [lastfm-grid](https://github.com/drproteus/lastfm-grid)
+* [lastfm-grid](https://lastfm-grid.skinet.org)
 
 You can follow me across the net [here](https://linktr.ee/drproteus).
 
