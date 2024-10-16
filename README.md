@@ -12,7 +12,7 @@ The generated `resume.html` can be found in `build/`.
 
 
 # Example
-![Screenshot 2024-10-16 at 11-07-38 ](https://github.com/user-attachments/assets/301504c1-6ef4-406e-86a2-33cdb5ad047b)
+![Screenshot 2024-10-16 at 11-36-11 ](https://github.com/user-attachments/assets/4b8450b7-0691-4f11-9139-6a6166d98289)
 
 ```json
 {
