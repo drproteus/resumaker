@@ -1,10 +1,7 @@
 {
   "fullname": "Jake Goritski",
   "email": "jgoritski@gmail.com",
-  "website": {
-    "name": "github.com/drproteus",
-    "url": "https://github.com/drproteus"
-  },
+  "website": "https://github.com/drproteus",
   "experience": [
     {
       "title": "Senior Software Engineer",
