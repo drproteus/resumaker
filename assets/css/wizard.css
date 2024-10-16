@@ -44,10 +44,9 @@ h4 {
     opacity: 0.5;
 }
 
-#wizard-body-sidebar-mii {
-    display: none;
-    margin: 0;
-    height: 128px;
+#mii {
+    margin: -10px;
+    height: 100px;
     position: absolute;
     bottom: 0;
     right: 0;
@@ -58,6 +57,7 @@ h4 {
     margin: 10px;
     padding: 0;
     width: fit-content;
+    position: relative;
 }
 
 #wizard-page-title {

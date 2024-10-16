@@ -9,6 +9,7 @@
     "title": "Customization"
   },
   "step_3": {
-    "title": "Wrapping Up"
+    "title": "Wrapping Up",
+    "show_mii": true
   }
 }
