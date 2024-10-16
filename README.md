@@ -19,7 +19,7 @@ The generated `resume.html` can be found in `build/`.
   "fullname": "Cool Guy",
   "email": "coolguy@website.biz",
   "telephone": "973-808-1337",
-  "website": "github.com/coolguy",
+  "website": "https://github.com/coolguy",
   "experience": [
     {
       "title": "Assistant Warlock",
