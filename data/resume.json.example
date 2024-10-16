@@ -1,9 +1,10 @@
 {
     "fullname": "Cool Guy",
     "email": "coolguy@website.biz",
+    "telephone": "973-808-1337",
     "website": {
-        "name": "website.biz",
-        "url": "https://website.biz/coolguy"
+        "name": "github.com/coolguy",
+        "url": "https://github.com/coolguy"
     },
     "experience": [
         {
