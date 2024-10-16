@@ -1,10 +1,14 @@
-[
-  {
-    "title": "Here We Go",
-    "content": "And so, there was this guy, you see..."
+{
+  "index": {
+    "title": "Resumaker Install Assistant"
   },
-  {
-    "title": "American Football",
-    "content": "Honestly..."
+  "step_1": {
+    "title": "Getting Started"
+  },
+  "step_2": {
+    "title": "Customization"
+  },
+  "step_3": {
+    "title": "Wrapping Up"
   }
-]
+}

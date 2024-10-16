@@ -32,6 +32,7 @@ h4 {
     width: 160px;
     height: 100%;
     position: relative;
+    flex-shrink: 0;
 }
 
 #wizard-body-sidebar-icon {
@@ -56,6 +57,7 @@ h4 {
 #wizard-body-content {
     margin: 10px;
     padding: 0;
+    width: fit-content;
 }
 
 #wizard-page-title {

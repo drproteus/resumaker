@@ -30,3 +30,4 @@ urllib3==1.26.20
 wcwidth==0.2.13
 websockets==9.1
 zipp==3.20.2
+jinja-markdown==1.210911
