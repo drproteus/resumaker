@@ -16,20 +16,19 @@ html: build/resume.html
 pdf: build/resume.pdf
 
 pages/index.html:
-	python app.py --pages
+	python pages.py
 	-cp -av ./assets/css ./pages/css
 	-cp -av ./assets/images ./pages/images
 
-pages: pages/index.html
+pages: html pdf pages/index.html
+	cp build/resume.html pages/resume.html
+	cp build/resume.pdf pages/resume.pdf
 
 .PHONY: serve-pages
-serve-pages:
+serve-pages: pages
 	python -m http.server -d pages
-
-.PHONY: clean-pages
-clean-pages:
-	rm -rf pages/
 
 .PHONY: clean
 clean:
-	rm -f build/*
+	rm -rf build/*
+	rm -rf pages/*
