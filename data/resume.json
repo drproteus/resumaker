@@ -12,7 +12,7 @@
       "highlights": [
         "Optimized performance query models in Python to greatly improve API performance when querying large sets of data from the internal MySQL DB.",
         "Maintained and developed performance improvements to the database replication system responsible for replicating performance data from internal database to internally provisioned or customer provided database, supporting MySQL, Postgres, and Redshift.",
-        "Developed memory-concious libraries for streaming large sets of data to and from the internal and replicated databases in CSV and JSON.",
+        "Developed memory-conscious libraries for streaming large sets of data to and from the internal and replicated databases in CSV and JSON.",
         "Developed archival tools and libraries for compressing performance data from already completed tests into various combinations of CSV and JSON, as well as supporting multiple types of compression in cloud or local file storage.",
         "Developed multi-threaded daemon services making use of Redis queues for state management to handle automated data replication, deletion and cleanup of old data, and archiving and compressing less frequently accessed performance data.",
         "Migrated backend endpoints to use async and created an async version of the core websocket client.",
@@ -51,7 +51,7 @@
       "end_date": "Oct. 2019",
       "highlights": [
         "Developed HIPAA-compliant APIs with Django and web interfaces in AngularJS, jQuery, and Elm for medical billing and coding operations.",
-        "Maintained legacy auotmations and parsing tools for HL7 medical health data exchanges.",
+        "Maintained legacy automations and parsing tools for HL7 medical health data exchanges.",
         "Administered separate AWS environment for marketing hosting Apache Airflow on an EC2 instance running custom integrations interfacing with various lead generation tools and DOMO for in-depth analysis.",
         "Migrated Django REST framework API endpoints to GraphQL."
       ]
