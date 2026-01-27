@@ -4,6 +4,10 @@
     margin: 1.27cm !important;
     background-image: none !important;
   }
+
+  #footer {
+    display: none !important
+  }
 }
 
 html,
@@ -121,6 +125,13 @@ h3 {
   margin: 0;
   padding: 0;
   clear: both;
+}
+
+#footer {
+  float: right;
+  font-size: 10px;
+  font-weight: bold;
+  color: rgb(137, 137, 137);
 }
 
 body {
