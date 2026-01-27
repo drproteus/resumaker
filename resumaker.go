@@ -33,9 +33,13 @@ type ResumeData struct {
 	Style      template.HTML
 }
 
+const usage = `Usage:
+	resumaker <data> <template> <style>
+`
+
 func main() {
-	if len(os.Args) < 3 {
-		fmt.Println("Insufficient arguments!")
+	if len(os.Args) < 4 {
+		fmt.Printf(usage)
 		return
 	}
 	resumeDataPath := os.Args[1]
