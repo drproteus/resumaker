@@ -50,3 +50,13 @@ The generated `resume.html` can be found in `build/`.
   ]
 }
 ```
+
+
+# Go (v2)
+
+After some struggle with Python environment dependencies setting this project up after some time away I've decided to refactor with Go. So far, the HTML generation is at least supported.
+
+```
+go build resumaker.go
+./resumaker data/resume.json templates/resume.gohtml templates/style.html
+```
