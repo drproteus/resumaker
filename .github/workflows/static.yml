@@ -35,6 +35,8 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version: 1.25.5
+      - name: Install Chromium
+        uses: browser-actions/setup-chrome@v2
       - name: Build resume artifacts
         run: |
           go build resumaker.go
