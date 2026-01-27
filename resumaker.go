@@ -30,6 +30,7 @@ type ResumeData struct {
 	Education  []ResumeDataEdu `json:"education"`
 	Keywords   []string        `json:"keywords"`
 	Telephone  string          `json:"telephone"`
+	Style      template.HTML
 }
 
 func main() {
@@ -39,10 +40,13 @@ func main() {
 	}
 	resumeDataPath := os.Args[1]
 	resumeTemplatePath := os.Args[2]
+	resumeStylePath := os.Args[3]
 
 	jsonData, _ := os.ReadFile(resumeDataPath)
 	var resumeData ResumeData
 	json.Unmarshal(jsonData, &resumeData)
+	styleHTML, _ := os.ReadFile(resumeStylePath)
+	resumeData.Style = template.HTML(styleHTML)
 
 	var tpl *template.Template
 	tpl = template.Must(template.ParseFiles(resumeTemplatePath))
