@@ -171,3 +171,7 @@ pages/
 *.dll
 *.so
 *.dylib
+
+*.pdf
+.DS_Store
+resumaker
