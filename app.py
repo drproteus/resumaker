@@ -32,8 +32,8 @@ def write(html, out_path=RESUME_HTML_PATH):
         f.write(html)
 
 
-def write_pdf(html, pdf_path=RESUME_PDF_PATH, pdf_options=PDF_OPTIONS):
-    pdfgen.sync.from_string(html, pdf_path, options=pdf_options)
+def write_pdf(path, pdf_path=RESUME_PDF_PATH, pdf_options=PDF_OPTIONS):
+    pdfgen.sync.from_file(path, pdf_path, options=pdf_options)
 
 
 @click.command("resumaker")
@@ -59,10 +59,9 @@ def main(html_out, pdf_out, data_path):
     template = env.get_template(RESUME_TEMPLATE)
     data = load_resume_data(data_path)
     html = template.render(data)
-    if html_out:
-        write(html)
+    write(html)
     if pdf_out:
-        write_pdf(html)
+        write_pdf(RESUME_HTML_PATH)
     if not html_out and not pdf_out:
         click.echo(html)
 
