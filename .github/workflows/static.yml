@@ -42,6 +42,7 @@ jobs:
       - name: Build resume artifacts
         run: |
           go build resumaker.go
+          mkdir -p build/
           ./resumaker data/resume.json templates/resume.gohtml assets/css/style.css
           mv build/resume.html build/index.html
       - name: Upload artifact
