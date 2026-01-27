@@ -35,7 +35,7 @@ type ResumeData struct {
 	Keywords   []string        `json:"keywords"`
 	Telephone  string          `json:"telephone"`
 	Skills     []string        `json:"skills"`
-	Style      template.HTML
+	Style      template.CSS
 }
 
 const usage = `Usage:
@@ -56,8 +56,8 @@ func generateResumeHTML(dataPath string, templatePath string, stylePath string, 
 	jsonData, _ := os.ReadFile(dataPath)
 	var resumeData ResumeData
 	json.Unmarshal(jsonData, &resumeData)
-	styleHTML, _ := os.ReadFile(stylePath)
-	resumeData.Style = template.HTML(styleHTML)
+	styleCSS, _ := os.ReadFile(stylePath)
+	resumeData.Style = template.CSS(styleCSS)
 	tpl := template.Must(template.ParseFiles(templatePath))
 	tpl.Execute(buffer, resumeData)
 }
