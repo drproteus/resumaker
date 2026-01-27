@@ -1,7 +1,7 @@
 {
   "fullname": "Jake Goritski",
   "email": "jake@gorit.ski",
-  "website": "https://github.com/drproteus",
+  "website": "github.com/drproteus",
   "experience": [
     {
       "title": "Senior Software Engineer",
@@ -33,14 +33,14 @@
       ]
     },
     {
-      "title": "Software Enginer",
+      "title": "Software Engineer",
       "company": "FindMine",
       "location": "Manhattan, NY (Remote)",
       "start_date": "May 2020",
       "end_date": "Nov. 2020",
       "highlights": [
         "Lead the adoption of GraphQL for use in new Flask micro-services API, working closely with front-end developers, and writing test suites for smooth TDD process with a fully remote team.",
-        "Maintained AWS infrastructure-as-code setup using Terraform." 
+        "Maintained AWS infrastructure-as-code setup using Terraform."
       ]
     },
     {
@@ -79,5 +79,18 @@
       ]
     }
   ],
-  "skills": ["Python", "Go", "JavaScript", "HTML/CSS", "SQL", "Automation", "Testing", "Databases", "Distributed Systems", "Web Development", "Systems Administration", "ETL"]
+  "skills": [
+    "Python",
+    "Go",
+    "JavaScript",
+    "HTML/CSS",
+    "SQL",
+    "Automation",
+    "Testing",
+    "Databases",
+    "Distributed Systems",
+    "Web Development",
+    "Systems Administration",
+    "ETL"
+  ]
 }
