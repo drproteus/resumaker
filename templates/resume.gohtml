@@ -65,10 +65,7 @@
                 <div class="title">Skills</div>
                 <div class="content">
                     <!-- Skill entries -->
-                    {{range $index, $element := .Skills}}
-                    {{if $index}},{{end}}
-                    {{$element}}
-                    {{ end }}
+                    {{range $index, $element := .Skills}}{{if $index}}, {{end}}{{$element}}{{end}}
                 </div>
             </div>
             {{ end }}

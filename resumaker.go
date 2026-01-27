@@ -1,10 +1,14 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"html/template"
+	"io"
 	"os"
+
+	"github.com/grahms/html2pdf"
 )
 
 type ResumeDataExp struct {
@@ -30,29 +34,42 @@ type ResumeData struct {
 	Education  []ResumeDataEdu `json:"education"`
 	Keywords   []string        `json:"keywords"`
 	Telephone  string          `json:"telephone"`
+	Skills     []string        `json:"skills"`
 	Style      template.HTML
 }
 
 const usage = `Usage:
-	resumaker <data> <template> <style>
-`
+	resumaker <data> <template> <style>`
 
 func main() {
 	if len(os.Args) < 4 {
-		fmt.Printf(usage)
+		fmt.Println(usage)
 		return
 	}
-	resumeDataPath := os.Args[1]
-	resumeTemplatePath := os.Args[2]
-	resumeStylePath := os.Args[3]
+	var buffer bytes.Buffer
+	generateResumeHTML(os.Args[1], os.Args[2], os.Args[3], &buffer)
+	os.WriteFile("build/resume.html", buffer.Bytes(), 0644)
+	generateResumePDF(buffer.String(), "build/resume.pdf")
+}
 
-	jsonData, _ := os.ReadFile(resumeDataPath)
+func generateResumeHTML(dataPath string, templatePath string, stylePath string, buffer io.Writer) {
+	jsonData, _ := os.ReadFile(dataPath)
 	var resumeData ResumeData
 	json.Unmarshal(jsonData, &resumeData)
-	styleHTML, _ := os.ReadFile(resumeStylePath)
+	styleHTML, _ := os.ReadFile(stylePath)
 	resumeData.Style = template.HTML(styleHTML)
+	tpl := template.Must(template.ParseFiles(templatePath))
+	tpl.Execute(buffer, resumeData)
+}
 
-	var tpl *template.Template
-	tpl = template.Must(template.ParseFiles(resumeTemplatePath))
-	tpl.Execute(os.Stdout, resumeData)
+func generateResumePDF(htmlString string, outPath string) {
+	pdfGen, err := html2pdf.New()
+	if err != nil {
+		panic(err)
+	}
+	pdfBuffer, err := pdfGen.GeneratePDF(&htmlString)
+	if err != nil {
+		panic(err)
+	}
+	os.WriteFile(outPath, pdfBuffer, 0644)
 }
