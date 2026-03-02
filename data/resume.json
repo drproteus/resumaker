@@ -1,6 +1,6 @@
 {
   "fullname": "Jake Goritski",
-  "email": "jake@gorit.ski",
+  "email": "jakeg@gorit.ski",
   "website": "https://github.com/drproteus",
   "experience": [
     {
@@ -71,6 +71,14 @@
   ],
   "education": [
     {
+      "school": "App Academy",
+      "highlights": [
+        "Comprehensive web development bootcamp",
+        "Ruby on Rails, SQL, Backbone.js",
+        "Web design skills to take PSD designs and adapt to HTML/CSS"
+      ]
+    },
+    {
       "school": "University of Rochester",
       "degree": "BSc. Mathematics, 2014",
       "highlights": [
@@ -80,17 +88,17 @@
     }
   ],
   "skills": [
-    "Python",
     "Go",
     "JavaScript",
-    "HTML/CSS",
+    "Python",
+    "Bash",
     "SQL",
-    "Automation",
-    "Testing",
+    "HTML/CSS",
+    "Automated Testing",
     "Databases",
     "Distributed Systems",
-    "Web Development",
+    "Web Design",
     "Systems Administration",
-    "ETL"
+    "Data Warehousing"
   ]
 }
