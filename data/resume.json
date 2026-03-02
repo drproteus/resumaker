@@ -72,8 +72,8 @@
   "education": [
     {
       "school": "App Academy",
+      "degree": "Full-stack Web Development, 2015",
       "highlights": [
-        "Comprehensive web development bootcamp",
         "Ruby on Rails, SQL, Backbone.js",
         "Web design skills to take PSD designs and adapt to HTML/CSS"
       ]
