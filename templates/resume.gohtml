@@ -54,8 +54,10 @@
                 <div class="content">
                     <!-- Education entries -->
                     {{range .Education}}
-                    <b>{{.School}} · {{.Degree}}</b><br />
-                    <p>{{range .Highlights}}{{.}}<br />{{end}}</p>
+                    <div class="edu">
+                        <b>{{.School}} · {{.Degree}}</b><br />
+                        <p>{{range .Highlights}}{{.}}<br />{{end}}</p>
+                    </div>
                     {{ end }}
                 </div>
             </div>
