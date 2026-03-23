@@ -1,12 +1,24 @@
+@page {
+  size: A4;
+  margin: 0;
+}
+
 @media print {
   body {
-    zoom: 80%;
-    margin: 1.27cm !important;
+    background: none !important;
     background-image: none !important;
+    height: auto !important;
+    page-break-inside: avoid !important;
   }
 
   #footer {
     display: none !important
+  }
+
+  #container {
+    border: none !important;
+    box-shadow: none !important;
+    overflow: hidden;
   }
 }
 
@@ -75,25 +87,6 @@ ul {
   width: 80%;
 }
 
-@media print {
-  size: A4;
-  margin: 0mm;
-
-  body: {
-    background: none;
-  }
-
-  #container {
-    padding: 0;
-    margin: 0;
-    box-shadow: 0 0;
-    height: 100%;
-  }
-
-  #diz {
-    display: none;
-  }
-}
 
 h1 {
   margin: 0;
@@ -135,7 +128,7 @@ h3 {
 }
 
 .edu {
-    padding-top: 10px;
+  padding-bottom: 10px;
 }
 
 body {
