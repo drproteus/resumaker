@@ -1,8 +1,12 @@
+@page {
+  size: auto;
+}
+
 @media print {
   body {
     background: none !important;
     background-image: none !important;
-    height: 100% !important;
+    height: auto !important;
     page-break-inside: avoid !important;
   }
 
@@ -67,7 +71,7 @@ ul {
 }
 
 .entry {
-  padding: 10px 0;
+  padding: 5px 0;
 }
 
 .entry .title {
