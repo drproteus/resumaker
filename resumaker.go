@@ -40,13 +40,18 @@ type ResumeDataContact struct {
 	Value string `json:"value"`
 }
 
+type ResumeDataSkillGroup struct {
+	Category string   `json:"category"`
+	Items    []string `json:"items"`
+}
+
 type ResumeData struct {
-	Fullname   string              `json:"fullname"`
-	Contact    []ResumeDataContact `json:"contact"`
-	Experience []ResumeDataExp     `json:"experience"`
-	Education  []ResumeDataEdu     `json:"education"`
-	Keywords   []string            `json:"keywords"`
-	Skills     []string            `json:"skills"`
+	Fullname   string                 `json:"fullname"`
+	Contact    []ResumeDataContact    `json:"contact"`
+	Experience []ResumeDataExp        `json:"experience"`
+	Education  []ResumeDataEdu        `json:"education"`
+	Keywords   []string               `json:"keywords"`
+	Skills     []ResumeDataSkillGroup `json:"skills"`
 	Style      template.CSS
 }
 

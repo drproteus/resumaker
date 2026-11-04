@@ -45,7 +45,7 @@
 
 @page {
   size: letter;
-  margin: 0.45in;
+  margin: 0.42in;
 }
 
 :root {
@@ -73,7 +73,7 @@ body {
   color: var(--ink);
   font-family: "Latin Modern Roman", "Computer Modern", Georgia, serif;
   font-size: 9.5pt;
-  line-height: 1.17;
+  line-height: 1.15;
   font-kerning: normal;
   font-variant-numeric: lining-nums;
   text-rendering: geometricPrecision;
@@ -87,7 +87,7 @@ body {
   width: 8.5in;
   min-height: 11in;
   margin: 28px auto;
-  padding: 0.45in;
+  padding: 0.42in;
   background: var(--paper);
   box-shadow:
     0 1px 2px rgba(0, 0, 0, 0.16),
@@ -109,7 +109,7 @@ a:hover {
    -------------------------------------------------------------------------- */
 
 .masthead {
-  margin: 0 0 9pt;
+  margin: 0 0 8pt;
   text-align: center;
 }
 
@@ -139,11 +139,11 @@ a:hover {
    -------------------------------------------------------------------------- */
 
 .section {
-  margin-top: 9pt;
+  margin-top: 7.5pt;
 }
 
 .section-heading {
-  margin: 0 0 4.5pt;
+  margin: 0 0 4pt;
   padding-bottom: 2pt;
   border-bottom: 0.7pt solid var(--rule);
   font-family: "Latin Modern Roman Caps", "Latin Modern Roman", serif;
@@ -159,7 +159,7 @@ a:hover {
    -------------------------------------------------------------------------- */
 
 .entry {
-  margin: 0 0 4.5pt;
+  margin: 0 0 3.5pt;
   break-inside: avoid;
 }
 
@@ -214,7 +214,7 @@ a:hover {
 
 .highlights li {
   position: relative;
-  margin: 0 0 0.75pt;
+  margin: 0 0 0.4pt;
   padding-left: 11pt;
   text-align: justify;
   break-inside: avoid;
@@ -255,23 +255,29 @@ a:hover {
    Skills
    -------------------------------------------------------------------------- */
 
-.skill-list {
+.skill-groups {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  column-gap: 16pt;
+  row-gap: 0.5pt;
   margin: 0;
-  padding: 0;
-  list-style: none;
   font-size: 9.5pt;
-  line-height: 1.4;
+  line-height: 1.22;
 }
 
-.skill-list li {
-  display: inline-block;
+.skill-category {
+  font-family: "Latin Modern Roman Caps", "Latin Modern Roman", serif;
+  font-size: 9.5pt;
+  letter-spacing: 0.035em;
   white-space: nowrap;
 }
 
-.skill-list li:not(:last-child)::after {
-  padding: 0 0.5em;
-  content: "·";
-  color: var(--faint);
+.skill-items {
+  margin: 0;
+}
+
+.skill-items .sep {
+  padding: 0 0.38em;
 }
 
 /* --------------------------------------------------------------------------
@@ -281,7 +287,7 @@ a:hover {
 .site-footer {
   max-width: 8.5in;
   margin: -14px auto 30px;
-  padding: 0 0.45in;
+  padding: 0 0.42in;
   text-align: right;
   color: var(--faint);
   font-size: 8.5pt;
