@@ -175,3 +175,6 @@ pages/
 *.pdf
 .DS_Store
 resumaker
+
+# Private resume data
+data/resume.json
