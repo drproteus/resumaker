@@ -1,0 +1,38 @@
+{{define "content"}}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h3 mb-0">Your resumes</h1>
+    <a class="btn btn-primary" href="/resumes/new">New resume</a>
+</div>
+
+{{if .Data}}
+<div class="card shadow-sm">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead>
+                <tr>
+                    <th scope="col">Name</th>
+                    <th scope="col">Template</th>
+                    <th scope="col">Last updated</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{range .Data}}
+                <tr>
+                    <td><a class="fw-semibold link-body-emphasis" href="/resumes/{{.ID}}">{{.Name}}</a></td>
+                    <td>{{.TemplateID}}</td>
+                    <td class="text-body-secondary">{{.UpdatedAt.Format "Jan 2, 2006 15:04"}}</td>
+                </tr>
+                {{end}}
+            </tbody>
+        </table>
+    </div>
+</div>
+{{else}}
+<div class="card shadow-sm">
+    <div class="card-body text-center text-body-secondary py-5">
+        <p class="mb-3">You don't have any resumes yet.</p>
+        <a class="btn btn-primary" href="/resumes/new">Create your first resume</a>
+    </div>
+</div>
+{{end}}
+{{end}}

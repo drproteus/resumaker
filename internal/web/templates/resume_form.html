@@ -1,0 +1,57 @@
+{{define "content"}}
+{{with .Data}}
+{{$form := .}}
+<div class="row justify-content-center">
+    <div class="col-xl-10">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h1 class="h3 mb-0">{{if .ID}}Edit resume{{else}}New resume{{end}}</h1>
+            <a class="btn btn-link text-decoration-none" href="/resumes">Back to resumes</a>
+        </div>
+
+        {{if .Error}}
+        <div class="alert alert-danger" role="alert">{{.Error}}</div>
+        {{end}}
+
+        <div class="card shadow-sm">
+            <div class="card-body p-4">
+                <form method="post" action="{{.Action}}">
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-8">
+                            <label class="form-label" for="name">Name</label>
+                            <input class="form-control" id="name" name="name" value="{{.Name}}" maxlength="100" required>
+                            <div class="form-text">For example, “Backend engineer”. Only you can see this.</div>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label" for="template">Template</label>
+                            <select class="form-select" id="template" name="template">
+                                {{range .Templates}}
+                                <option value="{{.ID}}"{{if eq .ID $form.TemplateID}} selected{{end}}>{{.Name}}</option>
+                                {{end}}
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label" for="data">Resume JSON</label>
+                        <textarea class="form-control font-monospace" id="data" name="data" rows="24" spellcheck="false" required>{{.Data}}</textarea>
+                    </div>
+
+                    <button class="btn btn-primary" type="submit">Save</button>
+                </form>
+            </div>
+        </div>
+
+        {{if .ID}}
+        <div class="card shadow-sm mt-4 border-danger-subtle">
+            <div class="card-body d-flex flex-wrap justify-content-between align-items-center gap-3">
+                <span class="text-body-secondary">Deleting this resume removes all of its saved versions.</span>
+                <form method="post" action="/resumes/{{.ID}}/delete" class="m-0">
+                    <button class="btn btn-outline-danger" type="submit">Delete resume</button>
+                </form>
+            </div>
+        </div>
+        {{end}}
+    </div>
+</div>
+{{end}}
+{{end}}

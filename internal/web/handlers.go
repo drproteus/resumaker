@@ -1,0 +1,188 @@
+package web
+
+import (
+	"errors"
+	"net/http"
+	"time"
+
+	"github.com/google/uuid"
+
+	"earthmanlabs/resumaker/internal/app"
+	"earthmanlabs/resumaker/internal/store"
+)
+
+type providerLink struct {
+	Slug  string
+	Label string
+}
+
+// resumeForm holds the values shown in the resume editor.
+type resumeForm struct {
+	ID         string
+	Action     string
+	Name       string
+	TemplateID string
+	Data       string
+	Templates  []app.Template
+	UpdatedAt  time.Time
+	Error      string
+}
+
+func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
+	if _, ok := s.currentUser(r); ok {
+		http.Redirect(w, r, "/resumes", http.StatusSeeOther)
+		return
+	}
+	http.Redirect(w, r, "/login", http.StatusSeeOther)
+}
+
+func (s *Server) handleLogin(w http.ResponseWriter, r *http.Request) {
+	if _, ok := s.currentUser(r); ok {
+		http.Redirect(w, r, "/resumes", http.StatusSeeOther)
+		return
+	}
+	links := make([]providerLink, 0, len(s.providers))
+	for _, p := range s.providers {
+		links = append(links, providerLink{Slug: p.Slug, Label: p.Label})
+	}
+	s.render(w, http.StatusOK, "login.html", page{Title: "Sign in", Data: links})
+}
+
+func (s *Server) handleResumeList(w http.ResponseWriter, r *http.Request, user store.User) {
+	resumes, err := s.app.ListResumes(r.Context(), user)
+	if err != nil {
+		s.fail(w, err)
+		return
+	}
+	s.render(w, http.StatusOK, "resumes.html", page{Title: "Your resumes", User: &user, Data: resumes})
+}
+
+func (s *Server) handleResumeNew(w http.ResponseWriter, r *http.Request, user store.User) {
+	form := resumeForm{
+		Action:     "/resumes",
+		TemplateID: app.Templates()[0].ID,
+		Templates:  app.Templates(),
+	}
+	s.render(w, http.StatusOK, "resume_form.html", page{Title: "New resume", User: &user, Data: form})
+}
+
+func (s *Server) handleResumeCreate(w http.ResponseWriter, r *http.Request, user store.User) {
+	in, ok := readInput(w, r)
+	if !ok {
+		return
+	}
+	id, err := s.app.CreateResume(r.Context(), user, in)
+	if err != nil {
+		var inputErr *app.InputError
+		if errors.As(err, &inputErr) {
+			form := newForm(in, "/resumes")
+			form.Error = inputErr.Msg
+			s.render(w, http.StatusUnprocessableEntity, "resume_form.html", page{Title: "New resume", User: &user, Data: form})
+			return
+		}
+		s.fail(w, err)
+		return
+	}
+	http.Redirect(w, r, "/resumes/"+id.String(), http.StatusSeeOther)
+}
+
+func (s *Server) handleResumeEdit(w http.ResponseWriter, r *http.Request, user store.User) {
+	id, ok := parseID(w, r)
+	if !ok {
+		return
+	}
+	detail, err := s.app.GetResume(r.Context(), user, id)
+	if err != nil {
+		s.resumeError(w, r, err)
+		return
+	}
+
+	form := resumeForm{
+		ID:         id.String(),
+		Action:     "/resumes/" + id.String(),
+		Name:       detail.Name,
+		TemplateID: detail.TemplateID,
+		Data:       string(detail.Data),
+		Templates:  app.Templates(),
+		UpdatedAt:  detail.UpdatedAt,
+	}
+	s.render(w, http.StatusOK, "resume_form.html", page{Title: "Edit resume", User: &user, Data: form})
+}
+
+func (s *Server) handleResumeUpdate(w http.ResponseWriter, r *http.Request, user store.User) {
+	id, ok := parseID(w, r)
+	if !ok {
+		return
+	}
+	in, ok := readInput(w, r)
+	if !ok {
+		return
+	}
+	if err := s.app.UpdateResume(r.Context(), user, id, in); err != nil {
+		var inputErr *app.InputError
+		if errors.As(err, &inputErr) {
+			form := newForm(in, "/resumes/"+id.String())
+			form.ID = id.String()
+			form.Error = inputErr.Msg
+			s.render(w, http.StatusUnprocessableEntity, "resume_form.html", page{Title: "Edit resume", User: &user, Data: form})
+			return
+		}
+		s.resumeError(w, r, err)
+		return
+	}
+	http.Redirect(w, r, "/resumes/"+id.String(), http.StatusSeeOther)
+}
+
+func (s *Server) handleResumeDelete(w http.ResponseWriter, r *http.Request, user store.User) {
+	id, ok := parseID(w, r)
+	if !ok {
+		return
+	}
+	if err := s.app.DeleteResume(r.Context(), user, id); err != nil {
+		s.resumeError(w, r, err)
+		return
+	}
+	http.Redirect(w, r, "/resumes", http.StatusSeeOther)
+}
+
+// resumeError maps "not found" to a 404 so other users' resumes look the same as missing ones.
+func (s *Server) resumeError(w http.ResponseWriter, r *http.Request, err error) {
+	if errors.Is(err, store.ErrNotFound) {
+		http.NotFound(w, r)
+		return
+	}
+	s.fail(w, err)
+}
+
+func parseID(w http.ResponseWriter, r *http.Request) (uuid.UUID, bool) {
+	id, err := uuid.Parse(r.PathValue("id"))
+	if err != nil {
+		http.NotFound(w, r)
+		return uuid.Nil, false
+	}
+	return id, true
+}
+
+func readInput(w http.ResponseWriter, r *http.Request) (app.ResumeInput, bool) {
+	r.Body = http.MaxBytesReader(w, r.Body, maxFormBytes)
+	if err := r.ParseForm(); err != nil {
+		http.Error(w, "Request is too large or malformed.", http.StatusBadRequest)
+		return app.ResumeInput{}, false
+	}
+	return app.ResumeInput{
+		Name:       r.PostFormValue("name"),
+		TemplateID: r.PostFormValue("template"),
+		Data:       []byte(r.PostFormValue("data")),
+	}, true
+}
+
+// newForm rebuilds the editor from submitted values so the user doesn't lose their edits.
+func newForm(in app.ResumeInput, action string) resumeForm {
+	return resumeForm{
+		Action:     action,
+		Name:       in.Name,
+		TemplateID: in.TemplateID,
+		Data:       string(in.Data),
+		Templates:  app.Templates(),
+	}
+}

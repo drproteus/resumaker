@@ -1,0 +1,15 @@
+# Local development database. Not for production.
+services:
+  db:
+    image: postgres:17
+    environment:
+      POSTGRES_USER: resumaker
+      POSTGRES_PASSWORD: resumaker
+      POSTGRES_DB: resumaker
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:

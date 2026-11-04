@@ -44,7 +44,7 @@ type ResumeData struct {
 	Education  []ResumeDataEdu        `json:"education"`
 	Keywords   []string               `json:"keywords"`
 	Skills     []ResumeDataSkillGroup `json:"skills"`
-	Style      template.CSS          `json:"-"`
+	Style      template.CSS           `json:"-"`
 }
 
 // Options describes a single render. Data, Template and Style are the only
