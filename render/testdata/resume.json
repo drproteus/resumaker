@@ -1,0 +1,28 @@
+{
+  "fullname": "Jane Example",
+  "contact": [
+    { "type": "email", "value": "jane@example.com" },
+    { "type": "website", "value": "example.com" }
+  ],
+  "experience": [
+    {
+      "title": "Software Engineer",
+      "company": "Example Corp",
+      "location": "Remote",
+      "start_date": "2020",
+      "end_date": "Present",
+      "highlights": ["Built things", "Fixed other things"]
+    }
+  ],
+  "education": [
+    {
+      "school": "Example University",
+      "degree": "BSc Computer Science",
+      "highlights": ["Dean's list"]
+    }
+  ],
+  "keywords": ["go", "resumes"],
+  "skills": [
+    { "category": "Languages", "items": ["Go", "Python"] }
+  ]
+}
