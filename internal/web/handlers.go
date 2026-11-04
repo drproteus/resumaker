@@ -154,6 +154,74 @@ func (s *Server) resumeError(w http.ResponseWriter, r *http.Request, err error) 
 	s.fail(w, err)
 }
 
+// renderView is the data shown on the render status page.
+type renderView struct {
+	ResumeID   string
+	ResumeName string
+	Job        *store.RenderJob
+}
+
+func (s *Server) handleRenderStart(w http.ResponseWriter, r *http.Request, user store.User) {
+	id, ok := parseID(w, r)
+	if !ok {
+		return
+	}
+	if _, err := s.app.RequestRender(r.Context(), user, id); err != nil {
+		s.resumeError(w, r, err)
+		return
+	}
+	http.Redirect(w, r, "/resumes/"+id.String()+"/render", http.StatusSeeOther)
+}
+
+func (s *Server) handleRenderStatus(w http.ResponseWriter, r *http.Request, user store.User) {
+	id, ok := parseID(w, r)
+	if !ok {
+		return
+	}
+	resume, err := s.app.GetResume(r.Context(), user, id)
+	if err != nil {
+		s.resumeError(w, r, err)
+		return
+	}
+	jobs, err := s.app.RenderJobs(r.Context(), user, id)
+	if err != nil {
+		s.fail(w, err)
+		return
+	}
+
+	view := renderView{ResumeID: id.String(), ResumeName: resume.Name}
+	p := page{Title: "Render resume", User: &user, Data: view}
+	if len(jobs) > 0 {
+		view.Job = &jobs[0]
+		p.Data = view
+		if view.Job.Status == store.RenderQueued || view.Job.Status == store.RenderRunning {
+			// Keep checking until the worker finishes.
+			p.Refresh = "2"
+		}
+	}
+	s.render(w, http.StatusOK, "render.html", p)
+}
+
+func (s *Server) handleRenderDownload(kind string) userHandler {
+	return func(w http.ResponseWriter, r *http.Request, user store.User) {
+		jobID, err := uuid.Parse(r.PathValue("id"))
+		if err != nil {
+			http.NotFound(w, r)
+			return
+		}
+		data, contentType, err := s.app.RenderArtifact(r.Context(), user, jobID, kind)
+		if err != nil {
+			s.resumeError(w, r, err)
+			return
+		}
+		h := w.Header()
+		h.Set("Content-Type", contentType)
+		h.Set("Content-Disposition", `attachment; filename="resume.`+kind+`"`)
+		h.Set("Cache-Control", "no-store")
+		w.Write(data)
+	}
+}
+
 func parseID(w http.ResponseWriter, r *http.Request) (uuid.UUID, bool) {
 	id, err := uuid.Parse(r.PathValue("id"))
 	if err != nil {

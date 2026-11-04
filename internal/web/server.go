@@ -41,11 +41,14 @@ type page struct {
 	Title string
 	User  *store.User
 	Data  any
+	// Refresh, when set, is a meta refresh interval such as "2" for pages
+	// waiting on a background job.
+	Refresh string
 }
 
 func New(opts Options, svc *app.Service, providers []*auth.Provider) (*Server, error) {
 	pages := map[string]*template.Template{}
-	for _, name := range []string{"login.html", "resumes.html", "resume_form.html"} {
+	for _, name := range []string{"login.html", "resumes.html", "resume_form.html", "render.html"} {
 		t, err := template.New("").ParseFS(assets, "templates/layout.html", "templates/"+name)
 		if err != nil {
 			return nil, err
@@ -85,6 +88,10 @@ func (s *Server) Handler() http.Handler {
 	mux.HandleFunc("GET /resumes/{id}", s.requireUser(s.handleResumeEdit))
 	mux.HandleFunc("POST /resumes/{id}", s.requireUser(s.handleResumeUpdate))
 	mux.HandleFunc("POST /resumes/{id}/delete", s.requireUser(s.handleResumeDelete))
+	mux.HandleFunc("POST /resumes/{id}/render", s.requireUser(s.handleRenderStart))
+	mux.HandleFunc("GET /resumes/{id}/render", s.requireUser(s.handleRenderStatus))
+	mux.HandleFunc("GET /renders/{id}/html", s.requireUser(s.handleRenderDownload("html")))
+	mux.HandleFunc("GET /renders/{id}/pdf", s.requireUser(s.handleRenderDownload("pdf")))
 
 	// Rejects cross-site form posts, so no CSRF tokens are needed.
 	csrf := http.NewCrossOriginProtection()

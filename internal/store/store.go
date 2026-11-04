@@ -37,13 +37,27 @@ func (s *Store) Close() {
 	s.db.Close()
 }
 
+// migrationLockKey serializes migrations across processes, so several
+// instances can start at the same time safely.
+const migrationLockKey int64 = 8123456789
+
 // Migrate applies any embedded migrations that haven't run yet, in filename order.
 func (s *Store) Migrate(ctx context.Context) error {
-	_, err := s.db.Exec(ctx, `CREATE TABLE IF NOT EXISTS schema_migrations (
+	conn, err := s.db.Acquire(ctx)
+	if err != nil {
+		return err
+	}
+	defer conn.Release()
+
+	if _, err := conn.Exec(ctx, `SELECT pg_advisory_lock($1)`, migrationLockKey); err != nil {
+		return err
+	}
+	defer conn.Exec(context.WithoutCancel(ctx), `SELECT pg_advisory_unlock($1)`, migrationLockKey)
+
+	if _, err := conn.Exec(ctx, `CREATE TABLE IF NOT EXISTS schema_migrations (
 		name       text PRIMARY KEY,
 		applied_at timestamptz NOT NULL DEFAULT now()
-	)`)
-	if err != nil {
+	)`); err != nil {
 		return err
 	}
 
@@ -55,7 +69,7 @@ func (s *Store) Migrate(ctx context.Context) error {
 
 	for _, name := range names {
 		var applied bool
-		err := s.db.QueryRow(ctx,
+		err := conn.QueryRow(ctx,
 			`SELECT EXISTS (SELECT 1 FROM schema_migrations WHERE name = $1)`, name).Scan(&applied)
 		if err != nil {
 			return err
@@ -68,15 +82,19 @@ func (s *Store) Migrate(ctx context.Context) error {
 		if err != nil {
 			return err
 		}
-		if err := s.applyMigration(ctx, name, string(sql)); err != nil {
+		if err := applyMigration(ctx, conn, name, string(sql)); err != nil {
 			return fmt.Errorf("migration %s: %w", name, err)
 		}
 	}
 	return nil
 }
 
-func (s *Store) applyMigration(ctx context.Context, name, sql string) error {
-	tx, err := s.db.Begin(ctx)
+type beginner interface {
+	Begin(context.Context) (pgx.Tx, error)
+}
+
+func applyMigration(ctx context.Context, db beginner, name, sql string) error {
+	tx, err := db.Begin(ctx)
 	if err != nil {
 		return err
 	}

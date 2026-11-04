@@ -26,6 +26,9 @@ func run() error {
 	if err != nil {
 		return err
 	}
+	if err := cfg.RequireProvider(); err != nil {
+		return err
+	}
 	ctx := context.Background()
 
 	st, err := store.Open(ctx, cfg.DatabaseURL)
