@@ -74,7 +74,7 @@ func TestPreviewHTML(t *testing.T) {
 		if err != nil {
 			t.Fatalf("preview %s: %v", tpl.ID, err)
 		}
-		for _, want := range []string{"Jane Example", "data-print", "/static/print.js", signature} {
+		for _, want := range []string{"Jane Example", "data-print", "data-dismiss-toolbar", "/static/print.js", signature} {
 			if !strings.Contains(string(doc), want) {
 				t.Errorf("%s preview missing %q", tpl.ID, want)
 			}

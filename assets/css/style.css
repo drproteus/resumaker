@@ -342,6 +342,39 @@ a:hover {
   font-size: 12px;
 }
 
+.print-toolbar {
+  padding-right: 52px;
+}
+
+.print-toolbar[hidden] {
+  display: none !important;
+}
+
+.print-toolbar button.print-toolbar-dismiss {
+  position: absolute;
+  top: 50%;
+  right: 10px;
+  display: grid;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  place-items: center;
+  border: 1px solid #c8c8c8;
+  border-radius: 3px;
+  background: transparent;
+  color: #555;
+  font: inherit;
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  transform: translateY(-50%);
+}
+
+.print-toolbar button.print-toolbar-dismiss:hover {
+  background: #f0f0f0;
+  color: #111;
+}
+
 @media screen and (max-width: 880px) {
   body {
     background: var(--paper);
