@@ -220,12 +220,28 @@ func parseID(w http.ResponseWriter, r *http.Request) (uuid.UUID, bool) {
 }
 
 // readResumeForm parses the editor's fields, rebuilding the form so a
-// validation error doesn't lose the user's edits.
+// validation error doesn't lose the user's edits. The JSON view uses its
+// textarea as the source of truth; the form view parses the repeatable fields.
 func readResumeForm(w http.ResponseWriter, r *http.Request, action string) (resumeForm, bool) {
 	r.Body = http.MaxBytesReader(w, r.Body, maxFormBytes)
 	if err := r.ParseForm(); err != nil {
 		http.Error(w, "Request is too large or malformed.", http.StatusBadRequest)
 		return resumeForm{}, false
 	}
-	return parseResumeForm(r.PostForm).withEditor(action), true
+
+	parsed := parseResumeForm(r.PostForm)
+	if r.PostFormValue("editor_view") != "json" {
+		parsed.View = "form"
+		return parsed.withEditor(action), true
+	}
+
+	raw := r.PostFormValue("data")
+	form := formFromData([]byte(raw))
+	form.Name = parsed.Name
+	form.TemplateID = parsed.TemplateID
+	form.View = "json"
+	form = form.withEditor(action)
+	// Keep the exact text the user submitted, even when it doesn't parse.
+	form.Data = raw
+	return form, true
 }

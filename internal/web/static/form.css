@@ -1,3 +1,38 @@
+/* Form/JSON editor panels. The server sets the initial class; the script keeps
+   it in step with the radios. The :has rules let modern browsers switch
+   without JavaScript too. */
+.resume-editor [data-editor-panel="form"] {
+  display: block;
+}
+
+.resume-editor [data-editor-panel="json"] {
+  display: none;
+}
+
+.resume-editor.editor-view-json [data-editor-panel="form"] {
+  display: none;
+}
+
+.resume-editor.editor-view-json [data-editor-panel="json"] {
+  display: block;
+}
+
+.resume-editor:has(#view-json:checked) [data-editor-panel="form"] {
+  display: none;
+}
+
+.resume-editor:has(#view-json:checked) [data-editor-panel="json"] {
+  display: block;
+}
+
+.resume-editor:has(#view-form:checked) [data-editor-panel="form"] {
+  display: block;
+}
+
+.resume-editor:has(#view-form:checked) [data-editor-panel="json"] {
+  display: none;
+}
+
 /* Resume editor drag handles. */
 .drag-handle {
   cursor: grab;

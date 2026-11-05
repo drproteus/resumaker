@@ -12,7 +12,7 @@
         <div class="alert alert-danger" role="alert">{{.Error}}</div>
         {{end}}
 
-        <form method="post" action="{{.Action}}">
+        <form class="resume-editor editor-view-{{$form.View}}" method="post" action="{{.Action}}">
             <div class="card shadow-sm mb-3">
                 <div class="card-body p-4">
                     <h2 class="h5 mb-3">Basics</h2>
@@ -30,56 +30,88 @@
                                 {{end}}
                             </select>
                         </div>
-                        <div class="col-md-6">
-                            <label class="form-label" for="fullname">Full name</label>
-                            <input class="form-control" id="fullname" name="fullname" value="{{.Fullname}}" required>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label" for="keywords">Keywords</label>
-                            <input class="form-control" id="keywords" name="keywords" value="{{.Keywords}}">
-                            <div class="form-text">Comma-separated, used in the page metadata.</div>
-                        </div>
                     </div>
                 </div>
             </div>
 
-            <div class="card shadow-sm mb-3">
-                <div class="card-header bg-body d-flex justify-content-between align-items-center">
-                    <h2 class="h5 mb-0">Contact</h2>
-                    <button class="btn btn-sm btn-outline-primary" type="button" data-add="contact" hidden>Add contact</button>
+            <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+                <div class="btn-group" role="group" aria-label="Editor view">
+                    <input class="btn-check" type="radio" name="editor_view" id="view-form" value="form"{{if ne $form.View "json"}} checked{{end}}>
+                    <label class="btn btn-outline-secondary" for="view-form">Form</label>
+                    <input class="btn-check" type="radio" name="editor_view" id="view-json" value="json"{{if eq $form.View "json"}} checked{{end}}>
+                    <label class="btn btn-outline-secondary" for="view-json">JSON</label>
                 </div>
-                <div class="card-body" data-rows="contact">
-                    {{range .Contacts}}{{template "contact_row" .}}{{else}}{{template "contact_row" $form.EmptyContact}}{{end}}
+                <span class="text-body-secondary small">Switch views without losing changes.</span>
+            </div>
+
+            <div id="editor-error" class="alert alert-warning d-none" role="alert"></div>
+
+            <div class="editor-panel" data-editor-panel="form">
+                <div class="card shadow-sm mb-3">
+                    <div class="card-body p-4">
+                        <h2 class="h5 mb-3">Details</h2>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label" for="fullname">Full name</label>
+                                <input class="form-control" id="fullname" name="fullname" value="{{.Fullname}}">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label" for="keywords">Keywords</label>
+                                <input class="form-control" id="keywords" name="keywords" value="{{.Keywords}}">
+                                <div class="form-text">Comma-separated, used in the page metadata.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card shadow-sm mb-3">
+                    <div class="card-header bg-body d-flex justify-content-between align-items-center">
+                        <h2 class="h5 mb-0">Contact</h2>
+                        <button class="btn btn-sm btn-outline-primary" type="button" data-add="contact" hidden>Add contact</button>
+                    </div>
+                    <div class="card-body" data-rows="contact">
+                        {{range .Contacts}}{{template "contact_row" .}}{{else}}{{template "contact_row" $form.EmptyContact}}{{end}}
+                    </div>
+                </div>
+
+                <div class="card shadow-sm mb-3">
+                    <div class="card-header bg-body d-flex justify-content-between align-items-center">
+                        <h2 class="h5 mb-0">Experience</h2>
+                        <button class="btn btn-sm btn-outline-primary" type="button" data-add="experience" hidden>Add experience</button>
+                    </div>
+                    <div class="card-body" data-rows="experience">
+                        {{range .Experience}}{{template "experience_row" .}}{{else}}{{template "experience_row" $form.EmptyExperience}}{{end}}
+                    </div>
+                </div>
+
+                <div class="card shadow-sm mb-3">
+                    <div class="card-header bg-body d-flex justify-content-between align-items-center">
+                        <h2 class="h5 mb-0">Education</h2>
+                        <button class="btn btn-sm btn-outline-primary" type="button" data-add="education" hidden>Add education</button>
+                    </div>
+                    <div class="card-body" data-rows="education">
+                        {{range .Education}}{{template "education_row" .}}{{else}}{{template "education_row" $form.EmptyEducation}}{{end}}
+                    </div>
+                </div>
+
+                <div class="card shadow-sm mb-3">
+                    <div class="card-header bg-body d-flex justify-content-between align-items-center">
+                        <h2 class="h5 mb-0">Skills</h2>
+                        <button class="btn btn-sm btn-outline-primary" type="button" data-add="skill" hidden>Add skill group</button>
+                    </div>
+                    <div class="card-body" data-rows="skill">
+                        {{range .Skills}}{{template "skill_row" .}}{{else}}{{template "skill_row" $form.EmptySkill}}{{end}}
+                    </div>
                 </div>
             </div>
 
-            <div class="card shadow-sm mb-3">
-                <div class="card-header bg-body d-flex justify-content-between align-items-center">
-                    <h2 class="h5 mb-0">Experience</h2>
-                    <button class="btn btn-sm btn-outline-primary" type="button" data-add="experience" hidden>Add experience</button>
-                </div>
-                <div class="card-body" data-rows="experience">
-                    {{range .Experience}}{{template "experience_row" .}}{{else}}{{template "experience_row" $form.EmptyExperience}}{{end}}
-                </div>
-            </div>
-
-            <div class="card shadow-sm mb-3">
-                <div class="card-header bg-body d-flex justify-content-between align-items-center">
-                    <h2 class="h5 mb-0">Education</h2>
-                    <button class="btn btn-sm btn-outline-primary" type="button" data-add="education" hidden>Add education</button>
-                </div>
-                <div class="card-body" data-rows="education">
-                    {{range .Education}}{{template "education_row" .}}{{else}}{{template "education_row" $form.EmptyEducation}}{{end}}
-                </div>
-            </div>
-
-            <div class="card shadow-sm mb-3">
-                <div class="card-header bg-body d-flex justify-content-between align-items-center">
-                    <h2 class="h5 mb-0">Skills</h2>
-                    <button class="btn btn-sm btn-outline-primary" type="button" data-add="skill" hidden>Add skill group</button>
-                </div>
-                <div class="card-body" data-rows="skill">
-                    {{range .Skills}}{{template "skill_row" .}}{{else}}{{template "skill_row" $form.EmptySkill}}{{end}}
+            <div class="editor-panel" data-editor-panel="json">
+                <div class="card shadow-sm mb-3">
+                    <div class="card-body p-4">
+                        <label class="form-label" for="data">Resume JSON</label>
+                        <textarea class="form-control font-monospace" id="data" name="data" rows="24" spellcheck="false">{{$form.Data}}</textarea>
+                        <div class="form-text">Same schema as the form. Unknown fields are rejected when you save.</div>
+                    </div>
                 </div>
             </div>
 

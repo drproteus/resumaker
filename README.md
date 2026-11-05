@@ -25,9 +25,10 @@ Previewing renders the resume to a self-contained HTML page in the browser with 
 print stylesheet. Use the Print button (or Ctrl/Cmd+P) to save it as a PDF, so no
 browser automation or external renderer is involved.
 
-Resumes are edited with a structured form. Drag the handle beside a row to reorder
-contact details, experience, education or skill groups, and use Duplicate on the
-resume list to start from an existing version.
+Resumes are edited with a structured form, with a toggle for editing the raw JSON
+instead. Drag the handle beside a row to reorder contact details, experience,
+education or skill groups, and use Duplicate on the resume list to start from an
+existing version.
 
 Five styles ship with the app: Classic, Modern, Sidebar, Comic (a Comic Sans homage)
 and Dingbats (Wingdings-adjacent). The Help page explains the editor, printing and

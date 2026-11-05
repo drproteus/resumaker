@@ -3,6 +3,7 @@ package web
 import (
 	"bytes"
 	"encoding/json"
+	"net/http/httptest"
 	"net/url"
 	"strings"
 	"testing"
@@ -29,6 +30,10 @@ func TestNewResumeFormRenders(t *testing.T) {
 		`data-add="contact"`,
 		`data-drag-handle`,
 		`data-template="experience"`,
+		`name="editor_view"`,
+		`id="view-json"`,
+		`id="data"`,
+		`class="resume-editor editor-view-form"`,
 		`>Classic`,
 		`>Comic`,
 		`Wingdings-adjacent`,
@@ -125,6 +130,90 @@ func TestParseResumeFormPreservesOrder(t *testing.T) {
 	}
 	if data.Experience[1].Title != "First" || data.Skills[1].Category != "Earlier" {
 		t.Errorf("submitted order was lost: %+v / %+v", data.Experience, data.Skills)
+	}
+}
+
+func TestReadResumeFormJSONView(t *testing.T) {
+	raw := "{\n  \"fullname\": \"Jane Example\",\n  \"skills\": [{\"category\": \"Go\", \"items\": [\"net/http\"]}]\n}"
+	values := url.Values{
+		"name":        {"  Backend  "},
+		"template":    {"default"},
+		"editor_view": {"json"},
+		"data":        {raw},
+	}
+
+	req := httptest.NewRequest("POST", "/resumes", strings.NewReader(values.Encode()))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	form, ok := readResumeForm(httptest.NewRecorder(), req, "/resumes")
+	if !ok {
+		t.Fatal("readResumeForm rejected a valid request")
+	}
+	if form.View != "json" {
+		t.Errorf("view = %q, want json", form.View)
+	}
+	if form.Data != raw {
+		t.Errorf("data was reformatted: %q", form.Data)
+	}
+	if form.Name != "Backend" || form.TemplateID != "default" {
+		t.Errorf("metadata = %q / %q", form.Name, form.TemplateID)
+	}
+	if form.Fullname != "Jane Example" {
+		t.Errorf("form fields were not populated from JSON: %q", form.Fullname)
+	}
+
+	in, err := form.input()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(in.Data) != raw {
+		t.Errorf("input changed the raw JSON: %q", in.Data)
+	}
+}
+
+func TestReadResumeFormJSONViewKeepsInvalidText(t *testing.T) {
+	raw := `{"fullname":`
+	values := url.Values{
+		"name":        {"Backend"},
+		"template":    {"default"},
+		"editor_view": {"json"},
+		"data":        {raw},
+	}
+
+	req := httptest.NewRequest("POST", "/resumes", strings.NewReader(values.Encode()))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	form, ok := readResumeForm(httptest.NewRecorder(), req, "/resumes")
+	if !ok {
+		t.Fatal("readResumeForm rejected the request")
+	}
+	if form.View != "json" || form.Data != raw {
+		t.Errorf("invalid JSON was not preserved: %+v", form)
+	}
+}
+
+func TestReadResumeFormFormViewBuildsJSONPreview(t *testing.T) {
+	values := url.Values{
+		"name":          {"Backend"},
+		"template":      {"default"},
+		"editor_view":   {"form"},
+		"fullname":      {"Jane Example"},
+		"contact_type":  {"email"},
+		"contact_value": {"jane@example.com"},
+	}
+
+	req := httptest.NewRequest("POST", "/resumes", strings.NewReader(values.Encode()))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	form, ok := readResumeForm(httptest.NewRecorder(), req, "/resumes")
+	if !ok {
+		t.Fatal("readResumeForm rejected the request")
+	}
+	if form.View != "form" {
+		t.Errorf("view = %q, want form", form.View)
+	}
+	if !strings.Contains(form.Data, `"fullname": "Jane Example"`) {
+		t.Errorf("form JSON preview missing fullname: %q", form.Data)
+	}
+	if !strings.Contains(form.Data, `"contact": [`) {
+		t.Errorf("form JSON preview missing contact: %q", form.Data)
 	}
 }
 

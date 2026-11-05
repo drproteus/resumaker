@@ -35,6 +35,8 @@ func TestResumeListHasDuplicateButton(t *testing.T) {
 	body := buf.String()
 	for _, want := range []string{
 		`>Classic</td>`,
+		`href="/resumes/` + id.String() + `/preview"`,
+		`>Preview &amp; print</a>`,
 		`action="/resumes/` + id.String() + `/duplicate"`,
 		`>Duplicate</button>`,
 	} {

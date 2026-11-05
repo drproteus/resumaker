@@ -42,6 +42,9 @@ type resumeForm struct {
 	Name       string
 	TemplateID string
 	Templates  []app.Template
+	// View is "form" or "json". Data holds the JSON shown in the textarea.
+	View string
+	Data string
 
 	Fullname   string
 	Contacts   []contactForm
@@ -69,6 +72,16 @@ func (f resumeForm) withEditor(action string) resumeForm {
 	f.Action = action
 	f.Templates = app.Templates()
 	f.EmptyContact = contactForm{Type: "email"}
+	if f.View == "" {
+		f.View = "form"
+	}
+	// The JSON view starts from the current form values. JSON submissions set
+	// Data afterwards so their exact text is preserved.
+	if f.Data == "" {
+		if data, err := json.MarshalIndent(f.resumeData(), "", "  "); err == nil {
+			f.Data = string(data)
+		}
+	}
 	return f
 }
 
@@ -185,7 +198,11 @@ func parseResumeForm(v url.Values) resumeForm {
 }
 
 // input converts the editor model into the JSON the service validates and stores.
+// In JSON view the textarea is the source of truth, including its formatting.
 func (f resumeForm) input() (app.ResumeInput, error) {
+	if f.View == "json" {
+		return app.ResumeInput{Name: f.Name, TemplateID: f.TemplateID, Data: []byte(f.Data)}, nil
+	}
 	data, err := json.MarshalIndent(f.resumeData(), "", "  ")
 	if err != nil {
 		return app.ResumeInput{}, err
