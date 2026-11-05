@@ -72,6 +72,28 @@ func TestAboutPageListsTemplates(t *testing.T) {
 	}
 }
 
+func TestFavicon(t *testing.T) {
+	h := newTestHandler(t)
+
+	rec := httptest.NewRecorder()
+	h.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/login", nil))
+	if !strings.Contains(rec.Body.String(), `href="/static/favicon.svg"`) {
+		t.Error("page does not link the favicon")
+	}
+
+	rec = httptest.NewRecorder()
+	h.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/static/favicon.svg", nil))
+	if rec.Code != http.StatusOK {
+		t.Fatalf("favicon status = %d", rec.Code)
+	}
+	if ct := rec.Header().Get("Content-Type"); !strings.HasPrefix(ct, "image/svg+xml") {
+		t.Errorf("favicon Content-Type = %q", ct)
+	}
+	if !strings.Contains(rec.Body.String(), "<svg") {
+		t.Error("favicon body is not SVG")
+	}
+}
+
 func TestAuthStartSetsPKCEAndStateCookies(t *testing.T) {
 	h := newTestHandler(t)
 	rec := httptest.NewRecorder()

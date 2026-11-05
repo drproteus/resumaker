@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16" shape-rendering="crispEdges" role="img" aria-label="Resumaker document">
+  <path d="M4 2h5l3 3v9H4z" fill="#ffffff" stroke="#1f2933" stroke-width="1" stroke-linejoin="miter"/>
+  <path d="M9 2v3h3z" fill="#d9e2ec" stroke="#1f2933" stroke-width="1" stroke-linejoin="miter"/>
+  <rect x="6" y="7" width="4" height="1" fill="#0f766e"/>
+  <rect x="6" y="9" width="5" height="1" fill="#7b8794"/>
+  <rect x="6" y="11" width="3" height="1" fill="#7b8794"/>
+</svg>
