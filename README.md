@@ -59,6 +59,13 @@ which also enables secure cookies).
 Database migrations run automatically on startup and take an advisory lock, so
 several instances can start at once.
 
+## Deployment
+An Ansible playbook in `deploy/` provisions the production host with PostgreSQL,
+nginx, a Let's Encrypt certificate and a systemd service. It cross-compiles the Go
+binary on the controller and deploys it to `resumaker.skinet.org`, using the
+existing SSH config for the connection. See [`deploy/README.md`](deploy/README.md)
+for secrets setup and the deployment command.
+
 ## Tests
 Database tests run only when `TEST_DATABASE_URL` is set:
 

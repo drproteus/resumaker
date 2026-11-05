@@ -1,0 +1,324 @@
+---
+- name: Deploy Resumaker
+  hosts: resumaker
+  become: true
+  gather_facts: true
+  any_errors_fatal: true
+
+  pre_tasks:
+    - name: Check required secrets
+      ansible.builtin.assert:
+        that:
+          - resumaker_master_key | trim | length == 44
+          - (resumaker_master_key | trim) is match('^[A-Za-z0-9+/]{43}=$')
+          - resumaker_db_password | length >= 16
+          - resumaker_db_password is match('^[A-Za-z0-9._~-]+$')
+          - resumaker_letsencrypt_email | length > 0
+          - >-
+            (resumaker_github_client_id | length > 0 and resumaker_github_client_secret | length > 0) or
+            (resumaker_google_client_id | length > 0 and resumaker_google_client_secret | length > 0)
+        fail_msg: >-
+          Fill in deploy/group_vars/all/vault.yml (copy vault.yml.example). The
+          master key must be the 44-character base64 output of
+          `openssl rand -base64 32`, and the database password must be URL-safe
+          (letters, digits, dot, underscore, tilde or hyphen).
+
+    - name: Check the target platform
+      ansible.builtin.assert:
+        that:
+          - ansible_os_family == "Debian"
+        fail_msg: >-
+          This playbook targets Debian or Ubuntu. Adapt the apt tasks for
+          another distribution before running it.
+
+    - name: Determine the Go architecture
+      ansible.builtin.set_fact:
+        resumaker_goarch: "{{ {'x86_64': 'amd64', 'aarch64': 'arm64'}.get(ansible_architecture, '') }}"
+
+    - name: Check the target architecture
+      ansible.builtin.assert:
+        that:
+          - resumaker_goarch | length > 0
+        fail_msg: >-
+          Unsupported architecture {{ ansible_architecture }}. Add it to the
+          architecture map in site.yml.
+
+    - name: Create the local build directory
+      ansible.builtin.file:
+        path: "{{ resumaker_build_dir }}"
+        state: directory
+        mode: "0755"
+      delegate_to: localhost
+      become: false
+
+    - name: Build the web binary for the target
+      ansible.builtin.command:
+        argv:
+          - go
+          - build
+          - -trimpath
+          - -ldflags
+          - -s -w
+          - -o
+          - "{{ resumaker_build_dir }}/resumaker"
+          - ./cmd/web
+        chdir: "{{ playbook_dir }}/.."
+      environment:
+        GOOS: linux
+        GOARCH: "{{ resumaker_goarch }}"
+        CGO_ENABLED: "0"
+      delegate_to: localhost
+      become: false
+      changed_when: true
+
+  handlers:
+    - name: Validate nginx configuration
+      ansible.builtin.command:
+        cmd: nginx -t
+      changed_when: false
+      listen: Reload nginx
+
+    - name: Reload nginx
+      ansible.builtin.systemd:
+        name: nginx
+        state: reloaded
+      listen: Reload nginx
+
+    - name: Restart resumaker
+      ansible.builtin.systemd:
+        name: resumaker
+        state: restarted
+        daemon_reload: true
+      listen: Restart resumaker
+
+  tasks:
+    - name: Install packages
+      ansible.builtin.apt:
+        name:
+          - postgresql
+          - python3-psycopg2
+          - nginx
+          - certbot
+        state: present
+        update_cache: true
+        cache_valid_time: 3600
+
+    - name: Ensure PostgreSQL is running
+      ansible.builtin.systemd:
+        name: postgresql
+        state: started
+        enabled: true
+
+    - name: Ensure nginx is running
+      ansible.builtin.systemd:
+        name: nginx
+        state: started
+        enabled: true
+
+    - name: Create the system group
+      ansible.builtin.group:
+        name: "{{ resumaker_group }}"
+        system: true
+
+    - name: Create the system user
+      ansible.builtin.user:
+        name: "{{ resumaker_user }}"
+        group: "{{ resumaker_group }}"
+        system: true
+        shell: /usr/sbin/nologin
+        home: "{{ resumaker_install_dir }}"
+        create_home: false
+
+    - name: Create the install, config and ACME directories
+      ansible.builtin.file:
+        path: "{{ item.path }}"
+        state: directory
+        owner: "{{ item.owner }}"
+        group: "{{ item.group }}"
+        mode: "{{ item.mode }}"
+      loop:
+        - { path: "{{ resumaker_install_dir }}", owner: root, group: root, mode: "0755" }
+        - { path: "{{ resumaker_config_dir }}", owner: root, group: "{{ resumaker_group }}", mode: "0750" }
+        - { path: "{{ resumaker_letsencrypt_webroot }}/.well-known/acme-challenge", owner: root, group: root, mode: "0755" }
+
+    - name: Ensure the PostgreSQL user exists
+      community.postgresql.postgresql_user:
+        name: "{{ resumaker_db_user }}"
+        password: "{{ resumaker_db_password }}"
+        role_attr_flags: NOSUPERUSER,NOCREATEDB,NOCREATEROLE
+        state: present
+        login_unix_socket: /var/run/postgresql
+      become_user: postgres
+      no_log: true
+
+    - name: Ensure the PostgreSQL database exists
+      community.postgresql.postgresql_db:
+        name: "{{ resumaker_db_name }}"
+        owner: "{{ resumaker_db_user }}"
+        state: present
+        login_unix_socket: /var/run/postgresql
+      become_user: postgres
+
+    - name: Install the web binary
+      ansible.builtin.copy:
+        src: "{{ resumaker_build_dir }}/resumaker"
+        dest: "{{ resumaker_install_dir }}/resumaker"
+        owner: root
+        group: root
+        mode: "0755"
+      notify: Restart resumaker
+
+    - name: Install the environment file
+      ansible.builtin.template:
+        src: resumaker.env.j2
+        dest: "{{ resumaker_config_dir }}/resumaker.env"
+        owner: root
+        group: root
+        mode: "0600"
+      no_log: true
+      notify: Restart resumaker
+
+    - name: Install the systemd unit
+      ansible.builtin.template:
+        src: resumaker.service.j2
+        dest: /etc/systemd/system/resumaker.service
+        owner: root
+        group: root
+        mode: "0644"
+      notify: Restart resumaker
+
+    - name: Enable and start the resumaker service
+      ansible.builtin.systemd:
+        name: resumaker
+        state: started
+        enabled: true
+        daemon_reload: true
+
+    - name: Check for an existing TLS certificate
+      ansible.builtin.stat:
+        path: "{{ resumaker_letsencrypt_cert }}"
+      register: resumaker_cert
+
+    - name: Record whether TLS is already configured
+      ansible.builtin.set_fact:
+        resumaker_has_cert: "{{ resumaker_cert.stat.exists | bool }}"
+
+    - name: Install the nginx site
+      ansible.builtin.template:
+        src: nginx-site.conf.j2
+        dest: /etc/nginx/sites-available/resumaker.conf
+        owner: root
+        group: root
+        mode: "0644"
+      notify: Reload nginx
+
+    - name: Enable the nginx site
+      ansible.builtin.file:
+        src: /etc/nginx/sites-available/resumaker.conf
+        dest: /etc/nginx/sites-enabled/resumaker.conf
+        state: link
+      notify: Reload nginx
+
+    - name: Disable the default nginx site
+      ansible.builtin.file:
+        path: /etc/nginx/sites-enabled/default
+        state: absent
+      notify: Reload nginx
+
+    - name: Reload nginx before the ACME challenge
+      ansible.builtin.meta: flush_handlers
+
+    - name: Obtain the TLS certificate
+      ansible.builtin.command:
+        argv:
+          - certbot
+          - certonly
+          - --webroot
+          - --webroot-path
+          - "{{ resumaker_letsencrypt_webroot }}"
+          - --domains
+          - "{{ resumaker_domain }}"
+          - --non-interactive
+          - --agree-tos
+          - --no-eff-email
+          - --email
+          - "{{ resumaker_letsencrypt_email }}"
+      when: not (resumaker_has_cert | bool)
+      changed_when: true
+
+    - name: Enable the HTTPS nginx site
+      ansible.builtin.set_fact:
+        resumaker_has_cert: true
+
+    - name: Install the final nginx site
+      ansible.builtin.template:
+        src: nginx-site.conf.j2
+        dest: /etc/nginx/sites-available/resumaker.conf
+        owner: root
+        group: root
+        mode: "0644"
+      notify: Reload nginx
+
+    - name: Ensure the certbot deploy hook directory exists
+      ansible.builtin.file:
+        path: /etc/letsencrypt/renewal-hooks/deploy
+        state: directory
+        owner: root
+        group: root
+        mode: "0755"
+
+    - name: Reload nginx when certificates renew
+      ansible.builtin.copy:
+        dest: /etc/letsencrypt/renewal-hooks/deploy/reload-nginx
+        owner: root
+        group: root
+        mode: "0755"
+        content: |
+          #!/bin/sh
+          systemctl reload nginx
+
+    - name: Find the certbot timer unit
+      ansible.builtin.command:
+        cmd: systemctl list-unit-files --type=timer certbot.timer
+      register: resumaker_certbot_timer
+      changed_when: false
+      failed_when: false
+
+    - name: Ensure the certbot timer is enabled
+      ansible.builtin.systemd:
+        name: certbot.timer
+        state: started
+        enabled: true
+      when: "'certbot.timer' in resumaker_certbot_timer.stdout"
+
+    - name: Apply pending service and nginx changes
+      ansible.builtin.meta: flush_handlers
+
+    - name: Verify the app started
+      block:
+        - name: Wait for the app to become healthy
+          ansible.builtin.uri:
+            url: "{{ resumaker_healthcheck_url }}"
+            status_code: 200
+          register: resumaker_health
+          retries: 30
+          delay: 2
+          until: resumaker_health.status == 200
+          changed_when: false
+
+      rescue:
+        - name: Show the service status
+          ansible.builtin.command:
+            cmd: systemctl status resumaker --no-pager
+          changed_when: false
+          failed_when: false
+
+        - name: Show recent application logs
+          ansible.builtin.command:
+            cmd: journalctl -u resumaker -n 80 --no-pager
+          changed_when: false
+          failed_when: false
+
+        - name: Fail the deployment
+          ansible.builtin.fail:
+            msg: "Resumaker did not become healthy. Check the service logs above."

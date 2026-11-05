@@ -1,0 +1,37 @@
+# Non-secret deployment settings. Secrets live in group_vars/all/vault.yml.
+
+# Debian/Ubuntu system Python, so the apt-installed psycopg2 is visible to
+# Ansible's PostgreSQL modules.
+ansible_python_interpreter: /usr/bin/python3
+
+resumaker_domain: resumaker.skinet.org
+resumaker_base_url: "https://{{ resumaker_domain }}"
+
+resumaker_user: resumaker
+resumaker_group: resumaker
+
+resumaker_install_dir: /opt/resumaker
+resumaker_config_dir: /etc/resumaker
+resumaker_build_dir: "{{ playbook_dir }}/.build"
+
+resumaker_listen_host: 127.0.0.1
+resumaker_listen_port: 8080
+resumaker_listen_addr: "{{ resumaker_listen_host }}:{{ resumaker_listen_port }}"
+resumaker_healthcheck_url: "http://{{ resumaker_listen_host }}:{{ resumaker_listen_port }}/healthz"
+
+resumaker_db_name: resumaker
+resumaker_db_user: resumaker
+resumaker_db_host: 127.0.0.1
+resumaker_db_port: 5432
+
+resumaker_letsencrypt_webroot: /var/www/html
+resumaker_letsencrypt_cert: "/etc/letsencrypt/live/{{ resumaker_domain }}/fullchain.pem"
+
+# Secrets. Override these in group_vars/all/vault.yml (see vault.yml.example).
+resumaker_master_key: ""
+resumaker_db_password: ""
+resumaker_letsencrypt_email: ""
+resumaker_github_client_id: ""
+resumaker_github_client_secret: ""
+resumaker_google_client_id: ""
+resumaker_google_client_secret: ""

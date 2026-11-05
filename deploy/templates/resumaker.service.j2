@@ -1,0 +1,38 @@
+[Unit]
+Description=Resumaker web app
+Documentation=https://github.com/drproteus/resumaker
+After=network-online.target postgresql.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User={{ resumaker_user }}
+Group={{ resumaker_group }}
+WorkingDirectory={{ resumaker_install_dir }}
+EnvironmentFile={{ resumaker_config_dir }}/resumaker.env
+ExecStart={{ resumaker_install_dir }}/resumaker
+Restart=on-failure
+RestartSec=3
+SyslogIdentifier=resumaker
+
+# Keep the service in its own sandbox. The app does not write files; its only
+# writable path is the private /tmp that systemd provides.
+NoNewPrivileges=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+ProtectClock=true
+ProtectHostname=true
+RestrictSUIDSGID=true
+LockPersonality=true
+CapabilityBoundingSet=
+AmbientCapabilities=
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX AF_NETLINK
+UMask=0077
+
+[Install]
+WantedBy=multi-user.target

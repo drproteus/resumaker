@@ -178,3 +178,9 @@ resumaker
 
 # Private resume data
 data/resume.json
+
+# Ansible deployment
+deploy/.build/
+deploy/group_vars/all/vault.yml
+deploy/*.retry
+deploy/.ansible/
