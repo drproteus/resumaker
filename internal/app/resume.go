@@ -148,19 +148,19 @@ func validate(in ResumeInput) (string, []byte, error) {
 // Unknown fields are rejected so typos surface instead of being silently dropped.
 func normalizeResume(raw []byte) ([]byte, error) {
 	if len(bytes.TrimSpace(raw)) == 0 {
-		return nil, errors.New("Resume JSON is empty.")
+		return nil, errors.New("Resume data is empty.")
 	}
 	dec := json.NewDecoder(bytes.NewReader(raw))
 	dec.DisallowUnknownFields()
 	var rd render.ResumeData
 	if err := dec.Decode(&rd); err != nil {
-		return nil, fmt.Errorf("Resume JSON: %v", err)
+		return nil, fmt.Errorf("Resume data: %v", err)
 	}
 	if _, err := dec.Token(); !errors.Is(err, io.EOF) {
-		return nil, errors.New("Resume JSON: unexpected content after the document.")
+		return nil, errors.New("Resume data: unexpected content after the document.")
 	}
 	if strings.TrimSpace(rd.Fullname) == "" {
-		return nil, errors.New("Resume JSON: fullname is required.")
+		return nil, errors.New("Full name is required.")
 	}
 
 	var out bytes.Buffer

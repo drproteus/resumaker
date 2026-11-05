@@ -3,7 +3,6 @@ package web
 import (
 	"errors"
 	"net/http"
-	"time"
 
 	"github.com/google/uuid"
 
@@ -14,18 +13,6 @@ import (
 type providerLink struct {
 	Slug  string
 	Label string
-}
-
-// resumeForm holds the values shown in the resume editor.
-type resumeForm struct {
-	ID         string
-	Action     string
-	Name       string
-	TemplateID string
-	Data       string
-	Templates  []app.Template
-	UpdatedAt  time.Time
-	Error      string
 }
 
 func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
@@ -58,24 +45,23 @@ func (s *Server) handleResumeList(w http.ResponseWriter, r *http.Request, user s
 }
 
 func (s *Server) handleResumeNew(w http.ResponseWriter, r *http.Request, user store.User) {
-	form := resumeForm{
-		Action:     "/resumes",
-		TemplateID: app.Templates()[0].ID,
-		Templates:  app.Templates(),
-	}
-	s.render(w, http.StatusOK, "resume_form.html", page{Title: "New resume", User: &user, Data: form})
+	s.render(w, http.StatusOK, "resume_form.html", page{Title: "New resume", User: &user, Data: newResumeForm("/resumes")})
 }
 
 func (s *Server) handleResumeCreate(w http.ResponseWriter, r *http.Request, user store.User) {
-	in, ok := readInput(w, r)
+	form, ok := readResumeForm(w, r, "/resumes")
 	if !ok {
+		return
+	}
+	in, err := form.input()
+	if err != nil {
+		s.fail(w, err)
 		return
 	}
 	id, err := s.app.CreateResume(r.Context(), user, in)
 	if err != nil {
 		var inputErr *app.InputError
 		if errors.As(err, &inputErr) {
-			form := newForm(in, "/resumes")
 			form.Error = inputErr.Msg
 			s.render(w, http.StatusUnprocessableEntity, "resume_form.html", page{Title: "New resume", User: &user, Data: form})
 			return
@@ -97,15 +83,10 @@ func (s *Server) handleResumeEdit(w http.ResponseWriter, r *http.Request, user s
 		return
 	}
 
-	form := resumeForm{
-		ID:         id.String(),
-		Action:     "/resumes/" + id.String(),
-		Name:       detail.Name,
-		TemplateID: detail.TemplateID,
-		Data:       string(detail.Data),
-		Templates:  app.Templates(),
-		UpdatedAt:  detail.UpdatedAt,
-	}
+	form := formFromData(detail.Data).withEditor("/resumes/" + id.String())
+	form.ID = id.String()
+	form.Name = detail.Name
+	form.TemplateID = detail.TemplateID
 	s.render(w, http.StatusOK, "resume_form.html", page{Title: "Edit resume", User: &user, Data: form})
 }
 
@@ -114,14 +95,18 @@ func (s *Server) handleResumeUpdate(w http.ResponseWriter, r *http.Request, user
 	if !ok {
 		return
 	}
-	in, ok := readInput(w, r)
+	form, ok := readResumeForm(w, r, "/resumes/"+id.String())
 	if !ok {
+		return
+	}
+	in, err := form.input()
+	if err != nil {
+		s.fail(w, err)
 		return
 	}
 	if err := s.app.UpdateResume(r.Context(), user, id, in); err != nil {
 		var inputErr *app.InputError
 		if errors.As(err, &inputErr) {
-			form := newForm(in, "/resumes/"+id.String())
 			form.ID = id.String()
 			form.Error = inputErr.Msg
 			s.render(w, http.StatusUnprocessableEntity, "resume_form.html", page{Title: "Edit resume", User: &user, Data: form})
@@ -188,26 +173,13 @@ func parseID(w http.ResponseWriter, r *http.Request) (uuid.UUID, bool) {
 	return id, true
 }
 
-func readInput(w http.ResponseWriter, r *http.Request) (app.ResumeInput, bool) {
+// readResumeForm parses the editor's fields, rebuilding the form so a
+// validation error doesn't lose the user's edits.
+func readResumeForm(w http.ResponseWriter, r *http.Request, action string) (resumeForm, bool) {
 	r.Body = http.MaxBytesReader(w, r.Body, maxFormBytes)
 	if err := r.ParseForm(); err != nil {
 		http.Error(w, "Request is too large or malformed.", http.StatusBadRequest)
-		return app.ResumeInput{}, false
+		return resumeForm{}, false
 	}
-	return app.ResumeInput{
-		Name:       r.PostFormValue("name"),
-		TemplateID: r.PostFormValue("template"),
-		Data:       []byte(r.PostFormValue("data")),
-	}, true
-}
-
-// newForm rebuilds the editor from submitted values so the user doesn't lose their edits.
-func newForm(in app.ResumeInput, action string) resumeForm {
-	return resumeForm{
-		Action:     action,
-		Name:       in.Name,
-		TemplateID: in.TemplateID,
-		Data:       string(in.Data),
-		Templates:  app.Templates(),
-	}
+	return parseResumeForm(r.PostForm).withEditor(action), true
 }
