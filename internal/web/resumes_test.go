@@ -11,7 +11,7 @@ import (
 	"earthmanlabs/resumaker/internal/store"
 )
 
-func TestResumeListHasDuplicateButton(t *testing.T) {
+func TestResumeListActions(t *testing.T) {
 	srv, err := New(Options{}, nil, nil)
 	if err != nil {
 		t.Fatal(err)
@@ -39,6 +39,10 @@ func TestResumeListHasDuplicateButton(t *testing.T) {
 		`>Preview &amp; print</a>`,
 		`action="/resumes/` + id.String() + `/duplicate"`,
 		`>Duplicate</button>`,
+		`action="/resumes/` + id.String() + `/delete"`,
+		`data-confirm="Delete “Backend”? This cannot be undone."`,
+		`>Delete</button>`,
+		`/static/delete.js`,
 	} {
 		if !strings.Contains(body, want) {
 			t.Errorf("resume list missing %q", want)

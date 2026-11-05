@@ -133,6 +133,34 @@ func TestParseResumeFormPreservesOrder(t *testing.T) {
 	}
 }
 
+func TestResumeFormDeleteConfirmation(t *testing.T) {
+	srv, err := New(Options{}, nil, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	form := formFromData([]byte(`{"fullname": "Jane Example"}`)).withEditor("/resumes/abc")
+	form.ID = "abc"
+	form.Name = "Backend"
+
+	var buf bytes.Buffer
+	p := page{Title: "Edit resume", Data: form}
+	if err := srv.pages["resume_form.html"].ExecuteTemplate(&buf, "layout", p); err != nil {
+		t.Fatal(err)
+	}
+
+	body := buf.String()
+	for _, want := range []string{
+		`action="/resumes/abc/delete"`,
+		`data-confirm="Delete “Backend”? This cannot be undone."`,
+		`/static/delete.js`,
+	} {
+		if !strings.Contains(body, want) {
+			t.Errorf("edit page missing %q", want)
+		}
+	}
+}
+
 func TestReadResumeFormJSONView(t *testing.T) {
 	raw := "{\n  \"fullname\": \"Jane Example\",\n  \"skills\": [{\"category\": \"Go\", \"items\": [\"net/http\"]}]\n}"
 	values := url.Values{

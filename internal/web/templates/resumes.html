@@ -28,6 +28,9 @@
                             <form method="post" action="/resumes/{{.ID}}/duplicate" class="m-0">
                                 <button class="btn btn-sm btn-outline-secondary" type="submit">Duplicate</button>
                             </form>
+                            <form method="post" action="/resumes/{{.ID}}/delete" class="m-0" data-confirm="Delete “{{.Name}}”? This cannot be undone.">
+                                <button class="btn btn-sm btn-outline-danger" type="submit">Delete</button>
+                            </form>
                         </div>
                     </td>
                 </tr>
@@ -44,4 +47,8 @@
     </div>
 </div>
 {{end}}
+{{end}}
+
+{{define "scripts"}}
+<script src="/static/delete.js" defer></script>
 {{end}}
