@@ -298,6 +298,50 @@ a:hover {
   border-bottom: 0.5pt solid currentColor;
 }
 
+/* --------------------------------------------------------------------------
+   Print toolbar (web preview only; never printed)
+   -------------------------------------------------------------------------- */
+
+.print-toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 10px 14px;
+  padding: 10px 16px;
+  border-bottom: 1px solid #d8d8d8;
+  background: rgba(255, 255, 255, 0.96);
+  color: #333;
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-size: 13px;
+}
+
+.print-toolbar button {
+  padding: 6px 14px;
+  border: 1px solid #111;
+  border-radius: 3px;
+  background: #111;
+  color: #fff;
+  font: inherit;
+  cursor: pointer;
+}
+
+.print-toolbar button:hover {
+  background: #333;
+}
+
+.print-toolbar kbd {
+  padding: 1px 5px;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  background: #f4f4f4;
+  font-family: inherit;
+  font-size: 12px;
+}
+
 @media screen and (max-width: 880px) {
   body {
     background: var(--paper);
@@ -326,6 +370,10 @@ a:hover {
   html,
   body {
     background: #ffffff !important;
+  }
+
+  .print-toolbar {
+    display: none !important;
   }
 
   body {

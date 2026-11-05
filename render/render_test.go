@@ -1,7 +1,6 @@
 package render
 
 import (
-	"context"
 	"os"
 	"strings"
 	"testing"
@@ -88,15 +87,16 @@ func TestInlineAssetsResolvesRelativeToStylesheet(t *testing.T) {
 	}
 }
 
-func TestPDF(t *testing.T) {
-	if testing.Short() {
-		t.Skip("skipping headless Chrome test in short mode")
-	}
-	pdf, err := PDF(context.Background(), []byte("<html><body><p>Hello</p></body></html>"))
+func TestToolbarAddsPrintButton(t *testing.T) {
+	out, err := HTML(Options{
+		Data:     []byte(`{"fullname": "Jane"}`),
+		Template: `{{if .Toolbar}}<button data-print>Print</button>{{end}}`,
+		Toolbar:  true,
+	})
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !strings.HasPrefix(string(pdf), "%PDF") {
-		t.Errorf("output is not a PDF")
+	if !strings.Contains(string(out), "data-print") {
+		t.Errorf("expected print button, got %q", out)
 	}
 }

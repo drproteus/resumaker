@@ -13,6 +13,13 @@
 </head>
 
 <body>
+    {{if .Toolbar}}
+    <div class="print-toolbar">
+        <button type="button" data-print>Print / Save as PDF</button>
+        <span>or press <kbd>Ctrl</kbd>+<kbd>P</kbd> (<kbd>⌘</kbd>+<kbd>P</kbd> on macOS)</span>
+    </div>
+    <script src="/static/print.js" defer></script>
+    {{end}}
     <div class="page">
         <header class="masthead">
             <h1>{{.Fullname}}</h1>

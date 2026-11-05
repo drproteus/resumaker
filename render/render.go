@@ -45,6 +45,8 @@ type ResumeData struct {
 	Keywords   []string               `json:"keywords"`
 	Skills     []ResumeDataSkillGroup `json:"skills"`
 	Style      template.CSS           `json:"-"`
+	// Toolbar adds a print button and instructions, used by the web preview.
+	Toolbar bool `json:"-"`
 }
 
 // Options describes a single render. Data, Template and Style are the only
@@ -63,6 +65,8 @@ type Options struct {
 	// from and inlined as data: URIs. When nil, url(...) references are left
 	// untouched.
 	Assets fs.FS
+	// Toolbar adds a print button and instructions to the document.
+	Toolbar bool
 }
 
 // cssURLPattern matches url(...) references in the stylesheet so local assets
@@ -82,6 +86,7 @@ func HTML(opts Options) ([]byte, error) {
 		style = inlineAssets(style, opts.Assets, opts.StylePath)
 	}
 	resumeData.Style = template.CSS(style)
+	resumeData.Toolbar = opts.Toolbar
 
 	tpl, err := template.New("resume").Parse(opts.Template)
 	if err != nil {

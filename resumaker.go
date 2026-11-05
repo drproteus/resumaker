@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"io/fs"
 	"log"
@@ -60,12 +59,5 @@ func main() {
 	if err := os.WriteFile(htmlPath, htmlDoc, 0644); err != nil {
 		log.Fatal(err)
 	}
-
-	pdf, err := render.PDF(context.Background(), htmlDoc)
-	if err != nil {
-		log.Fatal(err)
-	}
-	if err := os.WriteFile(filepath.Join(buildDir, "resume.pdf"), pdf, 0644); err != nil {
-		log.Fatal(err)
-	}
+	log.Printf("wrote %s; open it in a browser and print to save as PDF", htmlPath)
 }
