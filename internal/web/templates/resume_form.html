@@ -118,6 +118,9 @@
 
 {{define "contact_row"}}
 <div class="row g-2 align-items-center mb-2" data-row>
+    <div class="col-auto">
+        <button class="btn btn-sm btn-outline-secondary drag-handle" type="button" data-drag-handle aria-label="Drag to reorder" title="Drag to reorder" hidden>⠿</button>
+    </div>
     <div class="col-sm-3">
         <select class="form-select" name="contact_type" aria-label="Contact type">
             <option value="email"{{if eq .Type "email"}} selected{{end}}>Email</option>
@@ -137,6 +140,10 @@
 
 {{define "experience_row"}}
 <div class="border rounded p-3 mb-3" data-row>
+    <div class="d-flex justify-content-between align-items-center mb-2">
+        <button class="btn btn-sm btn-outline-secondary drag-handle" type="button" data-drag-handle aria-label="Drag to reorder" title="Drag to reorder" hidden>⠿</button>
+        <button class="btn btn-sm btn-outline-danger" type="button" data-remove hidden>Remove</button>
+    </div>
     <div class="row g-3">
         <div class="col-md-6">
             <label class="form-label small">Title</label>
@@ -163,14 +170,15 @@
             <textarea class="form-control" name="exp_highlights" rows="3" placeholder="One achievement per line">{{.Highlights}}</textarea>
         </div>
     </div>
-    <div class="text-end mt-2">
-        <button class="btn btn-sm btn-outline-danger" type="button" data-remove hidden>Remove</button>
-    </div>
 </div>
 {{end}}
 
 {{define "education_row"}}
 <div class="border rounded p-3 mb-3" data-row>
+    <div class="d-flex justify-content-between align-items-center mb-2">
+        <button class="btn btn-sm btn-outline-secondary drag-handle" type="button" data-drag-handle aria-label="Drag to reorder" title="Drag to reorder" hidden>⠿</button>
+        <button class="btn btn-sm btn-outline-danger" type="button" data-remove hidden>Remove</button>
+    </div>
     <div class="row g-3">
         <div class="col-md-7">
             <label class="form-label small">School</label>
@@ -185,14 +193,14 @@
             <textarea class="form-control" name="edu_highlights" rows="2" placeholder="One detail per line">{{.Highlights}}</textarea>
         </div>
     </div>
-    <div class="text-end mt-2">
-        <button class="btn btn-sm btn-outline-danger" type="button" data-remove hidden>Remove</button>
-    </div>
 </div>
 {{end}}
 
 {{define "skill_row"}}
 <div class="row g-2 align-items-start mb-2" data-row>
+    <div class="col-auto">
+        <button class="btn btn-sm btn-outline-secondary drag-handle" type="button" data-drag-handle aria-label="Drag to reorder" title="Drag to reorder" hidden>⠿</button>
+    </div>
     <div class="col-sm-4">
         <input class="form-control" name="skill_category" value="{{.Category}}" aria-label="Skill category" placeholder="Languages">
     </div>
@@ -206,5 +214,6 @@
 {{end}}
 
 {{define "scripts"}}
+<link rel="stylesheet" href="/static/form.css">
 <script src="/static/form.js" defer></script>
 {{end}}

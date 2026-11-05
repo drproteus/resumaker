@@ -27,8 +27,10 @@ func TestNewResumeFormRenders(t *testing.T) {
 		`name="fullname"`,
 		`name="exp_highlights"`,
 		`data-add="contact"`,
+		`data-drag-handle`,
 		`data-template="experience"`,
 		`/static/form.js`,
+		`/static/form.css`,
 	} {
 		if !strings.Contains(body, want) {
 			t.Errorf("form missing %q", want)
@@ -88,6 +90,38 @@ func TestParseResumeForm(t *testing.T) {
 	}
 	if got := strings.Join(data.Skills[0].Items, "|"); got != "Go|SQL" {
 		t.Errorf("skill items = %q", got)
+	}
+}
+
+func TestParseResumeFormPreservesOrder(t *testing.T) {
+	values := url.Values{
+		"name":           {"Backend"},
+		"template":       {"default"},
+		"fullname":       {"Jane"},
+		"exp_title":      {"Second", "First"},
+		"exp_company":    {"B", "A"},
+		"skill_category": {"Later", "Earlier"},
+		"skill_items":    {"Two", "One"},
+	}
+
+	form := parseResumeForm(values)
+	if got := form.Experience[0].Title; got != "Second" {
+		t.Errorf("first experience = %q, want the first submitted row", got)
+	}
+	if got := form.Skills[0].Category; got != "Later" {
+		t.Errorf("first skill group = %q, want the first submitted row", got)
+	}
+
+	in, err := form.input()
+	if err != nil {
+		t.Fatal(err)
+	}
+	var data render.ResumeData
+	if err := json.Unmarshal(in.Data, &data); err != nil {
+		t.Fatal(err)
+	}
+	if data.Experience[1].Title != "First" || data.Skills[1].Category != "Earlier" {
+		t.Errorf("submitted order was lost: %+v / %+v", data.Experience, data.Skills)
 	}
 }
 

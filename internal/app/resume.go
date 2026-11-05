@@ -17,7 +17,10 @@ import (
 	"earthmanlabs/resumaker/render"
 )
 
-const maxNameLength = 100
+const (
+	maxNameLength = 100
+	copySuffix    = " (copy)"
+)
 
 // InputError reports user-correctable problems with submitted resume data.
 type InputError struct {
@@ -95,6 +98,33 @@ func (s *Service) GetResume(ctx context.Context, user store.User, id uuid.UUID) 
 		return ResumeDetail{}, fmt.Errorf("decrypt resume %s: %w", id, err)
 	}
 	return ResumeDetail{Resume: resume, Data: data}, nil
+}
+
+// DuplicateResume copies a resume's latest content into a new resume. The copy
+// starts with no revision history, so editing it doesn't touch the original.
+func (s *Service) DuplicateResume(ctx context.Context, user store.User, id uuid.UUID) (uuid.UUID, error) {
+	detail, err := s.GetResume(ctx, user, id)
+	if err != nil {
+		return uuid.Nil, err
+	}
+	return s.CreateResume(ctx, user, ResumeInput{
+		Name:       duplicateName(detail.Name),
+		TemplateID: detail.TemplateID,
+		Data:       detail.Data,
+	})
+}
+
+// duplicateName appends a marker while keeping the result within the name limit.
+func duplicateName(name string) string {
+	name = strings.TrimSpace(name)
+	if name == "" {
+		name = "Resume"
+	}
+	limit := maxNameLength - utf8.RuneCountInString(copySuffix)
+	if runes := []rune(name); len(runes) > limit {
+		name = string(runes[:limit])
+	}
+	return name + copySuffix
 }
 
 func (s *Service) UpdateResume(ctx context.Context, user store.User, id uuid.UUID, in ResumeInput) error {

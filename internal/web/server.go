@@ -84,6 +84,7 @@ func (s *Server) Handler() http.Handler {
 	mux.HandleFunc("POST /resumes", s.requireUser(s.handleResumeCreate))
 	mux.HandleFunc("GET /resumes/{id}", s.requireUser(s.handleResumeEdit))
 	mux.HandleFunc("POST /resumes/{id}", s.requireUser(s.handleResumeUpdate))
+	mux.HandleFunc("POST /resumes/{id}/duplicate", s.requireUser(s.handleResumeDuplicate))
 	mux.HandleFunc("POST /resumes/{id}/delete", s.requireUser(s.handleResumeDelete))
 	mux.HandleFunc("GET /resumes/{id}/preview", s.requireUser(s.handlePreview))
 

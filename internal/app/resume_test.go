@@ -4,6 +4,7 @@ import (
 	"errors"
 	"strings"
 	"testing"
+	"unicode/utf8"
 )
 
 const validJSON = `{"fullname": "Jane Example", "skills": [{"category": "Go", "items": ["net/http"]}]}`
@@ -46,5 +47,25 @@ func TestValidateRejectsLongName(t *testing.T) {
 	in := ResumeInput{Name: strings.Repeat("a", maxNameLength+1), TemplateID: "default", Data: []byte(validJSON)}
 	if _, _, err := validate(in); err == nil {
 		t.Fatal("expected error for long name")
+	}
+}
+
+func TestDuplicateName(t *testing.T) {
+	tests := map[string]string{
+		"Backend":                "Backend (copy)",
+		"  Backend  ":            "Backend (copy)",
+		"":                       "Resume (copy)",
+		strings.Repeat("a", 100): strings.Repeat("a", maxNameLength-len(copySuffix)) + copySuffix,
+	}
+	for in, want := range tests {
+		if got := duplicateName(in); got != want {
+			t.Errorf("duplicateName(%q) = %q, want %q", in, got, want)
+		}
+	}
+
+	// The limit is measured in runes, not bytes.
+	long := strings.Repeat("é", maxNameLength)
+	if got := duplicateName(long); utf8.RuneCountInString(got) != maxNameLength {
+		t.Errorf("duplicateName length = %d runes, want %d", utf8.RuneCountInString(got), maxNameLength)
 	}
 }

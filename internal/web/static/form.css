@@ -1,0 +1,21 @@
+/* Resume editor drag handles. */
+.drag-handle {
+  cursor: grab;
+  line-height: 1;
+  touch-action: none;
+  user-select: none;
+}
+
+.drag-handle:active {
+  cursor: grabbing;
+}
+
+[data-row].dragging {
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+body.dragging-row {
+  cursor: grabbing;
+  user-select: none;
+}

@@ -118,6 +118,19 @@ func (s *Server) handleResumeUpdate(w http.ResponseWriter, r *http.Request, user
 	http.Redirect(w, r, "/resumes/"+id.String(), http.StatusSeeOther)
 }
 
+func (s *Server) handleResumeDuplicate(w http.ResponseWriter, r *http.Request, user store.User) {
+	id, ok := parseID(w, r)
+	if !ok {
+		return
+	}
+	newID, err := s.app.DuplicateResume(r.Context(), user, id)
+	if err != nil {
+		s.resumeError(w, r, err)
+		return
+	}
+	http.Redirect(w, r, "/resumes/"+newID.String(), http.StatusSeeOther)
+}
+
 func (s *Server) handleResumeDelete(w http.ResponseWriter, r *http.Request, user store.User) {
 	id, ok := parseID(w, r)
 	if !ok {

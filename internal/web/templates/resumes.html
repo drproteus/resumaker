@@ -13,6 +13,7 @@
                     <th scope="col">Name</th>
                     <th scope="col">Template</th>
                     <th scope="col">Last updated</th>
+                    <th scope="col" class="text-end">Actions</th>
                 </tr>
             </thead>
             <tbody>
@@ -21,6 +22,11 @@
                     <td><a class="fw-semibold link-body-emphasis" href="/resumes/{{.ID}}">{{.Name}}</a></td>
                     <td>{{.TemplateID}}</td>
                     <td class="text-body-secondary">{{.UpdatedAt.Format "Jan 2, 2006 15:04"}}</td>
+                    <td class="text-end">
+                        <form method="post" action="/resumes/{{.ID}}/duplicate" class="m-0">
+                            <button class="btn btn-sm btn-outline-secondary" type="submit">Duplicate</button>
+                        </form>
+                    </td>
                 </tr>
                 {{end}}
             </tbody>
