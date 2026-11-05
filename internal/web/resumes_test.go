@@ -19,11 +19,14 @@ func TestResumeListHasDuplicateButton(t *testing.T) {
 
 	id := uuid.New()
 	var buf bytes.Buffer
-	p := page{Title: "Your resumes", Data: []store.Resume{{
-		ID:         id,
-		Name:       "Backend",
-		TemplateID: "default",
-		UpdatedAt:  time.Now(),
+	p := page{Title: "Your resumes", Data: []resumeRow{{
+		Resume: store.Resume{
+			ID:         id,
+			Name:       "Backend",
+			TemplateID: "default",
+			UpdatedAt:  time.Now(),
+		},
+		TemplateName: "Classic",
 	}}}
 	if err := srv.pages["resumes.html"].ExecuteTemplate(&buf, "layout", p); err != nil {
 		t.Fatal(err)
@@ -31,6 +34,7 @@ func TestResumeListHasDuplicateButton(t *testing.T) {
 
 	body := buf.String()
 	for _, want := range []string{
+		`>Classic</td>`,
 		`action="/resumes/` + id.String() + `/duplicate"`,
 		`>Duplicate</button>`,
 	} {

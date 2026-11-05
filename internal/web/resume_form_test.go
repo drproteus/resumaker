@@ -29,6 +29,9 @@ func TestNewResumeFormRenders(t *testing.T) {
 		`data-add="contact"`,
 		`data-drag-handle`,
 		`data-template="experience"`,
+		`>Classic`,
+		`>Comic`,
+		`Wingdings-adjacent`,
 		`/static/form.js`,
 		`/static/form.css`,
 	} {

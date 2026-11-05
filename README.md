@@ -29,6 +29,14 @@ Resumes are edited with a structured form. Drag the handle beside a row to reord
 contact details, experience, education or skill groups, and use Duplicate on the
 resume list to start from an existing version.
 
+Five styles ship with the app: Classic, Modern, Sidebar, Comic (a Comic Sans homage)
+and Dingbats (Wingdings-adjacent). The Help page explains the editor, printing and
+privacy. To render a style from the command line, pass its template and stylesheet:
+
+```bash
+$ ./resumaker render/testdata/resume.json templates/sidebar.gohtml assets/css/sidebar.css
+```
+
 ## Running locally
 Start PostgreSQL (uses `compose.yaml`) and set the required environment variables:
 

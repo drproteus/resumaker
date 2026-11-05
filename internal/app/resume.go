@@ -15,6 +15,7 @@ import (
 	"earthmanlabs/resumaker/internal/envelope"
 	"earthmanlabs/resumaker/internal/store"
 	"earthmanlabs/resumaker/render"
+	resumetpl "earthmanlabs/resumaker/templates"
 )
 
 const (
@@ -32,17 +33,19 @@ func (e *InputError) Error() string {
 }
 
 type Template struct {
-	ID   string
-	Name string
+	ID          string
+	Name        string
+	Description string
 }
 
-// templates lists the built-in templates a resume can use.
-var templates = []Template{
-	{ID: "default", Name: "Default"},
-}
-
+// Templates lists the built-in resume styles, in display order.
 func Templates() []Template {
-	return templates
+	all := resumetpl.All()
+	out := make([]Template, len(all))
+	for i, t := range all {
+		out[i] = Template{ID: t.ID, Name: t.Name, Description: t.Description}
+	}
+	return out
 }
 
 // ResumeInput is the user-submitted content for creating or updating a resume.
@@ -201,10 +204,6 @@ func normalizeResume(raw []byte) ([]byte, error) {
 }
 
 func validTemplate(id string) bool {
-	for _, t := range templates {
-		if t.ID == id {
-			return true
-		}
-	}
-	return false
+	_, ok := resumetpl.Lookup(id)
+	return ok
 }

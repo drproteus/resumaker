@@ -45,7 +45,7 @@ type page struct {
 
 func New(opts Options, svc *app.Service, providers []*auth.Provider) (*Server, error) {
 	pages := map[string]*template.Template{}
-	for _, name := range []string{"login.html", "resumes.html", "resume_form.html"} {
+	for _, name := range []string{"about.html", "login.html", "resumes.html", "resume_form.html"} {
 		t, err := template.New("").ParseFS(assets, "templates/layout.html", "templates/"+name)
 		if err != nil {
 			return nil, err
@@ -74,6 +74,7 @@ func (s *Server) Handler() http.Handler {
 	})
 
 	mux.HandleFunc("GET /{$}", s.handleIndex)
+	mux.HandleFunc("GET /about", s.handleAbout)
 	mux.HandleFunc("GET /login", s.handleLogin)
 	mux.HandleFunc("GET /auth/{provider}/login", s.handleAuthStart)
 	mux.HandleFunc("GET /auth/{provider}/callback", s.handleAuthCallback)

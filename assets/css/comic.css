@@ -1,0 +1,361 @@
+/* --------------------------------------------------------------------------
+   Comic — a wholehearted Comic Sans homage. Yes, really.
+   -------------------------------------------------------------------------- */
+
+@page {
+  size: letter;
+  margin: 0.42in;
+}
+
+:root {
+  --ink: #262626;
+  --muted: #4d4d4d;
+  --faint: #7a7a7a;
+  --accent: #e85d3f;
+  --accent-dark: #b83c24;
+  --highlight: #fff1c9;
+  --paper: #ffffff;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: #fff4e2;
+  color: var(--ink);
+  font-family: "Comic Sans MS", "Comic Sans", "Chalkboard SE", "Comic Neue", "Trebuchet MS", cursive;
+  font-size: 10pt;
+  line-height: 1.32;
+}
+
+.page {
+  position: relative;
+  width: 8.5in;
+  min-height: 11in;
+  margin: 28px auto;
+  padding: 0.42in;
+  background-color: var(--paper);
+  background-image: radial-gradient(rgba(232, 93, 63, 0.12) 0.7px, transparent 0.8px);
+  background-size: 13px 13px;
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.14),
+    0 14px 36px rgba(0, 0, 0, 0.12);
+}
+
+a {
+  color: var(--accent-dark);
+  text-decoration: none;
+  border-bottom: 1.5px dotted var(--accent);
+}
+
+a:hover {
+  background: var(--highlight);
+}
+
+.sep {
+  padding: 0 0.4em;
+  color: var(--accent);
+}
+
+/* Masthead ----------------------------------------------------------------- */
+
+.masthead {
+  margin: 0 0 10pt;
+  padding-bottom: 7pt;
+  border-bottom: 3px solid var(--accent);
+  border-radius: 0 0 14px 4px;
+}
+
+.masthead h1 {
+  margin: 0 0 4pt;
+  font-size: 31pt;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+  text-shadow: 1.5px 1.5px 0 var(--highlight);
+}
+
+.contact {
+  margin: 0;
+  color: var(--muted);
+  font-size: 10pt;
+}
+
+.contact .sep {
+  font-size: 0.8em;
+}
+
+/* The sticker -------------------------------------------------------------- */
+
+.burst {
+  position: absolute;
+  top: 0.34in;
+  right: 0.34in;
+  display: grid;
+  width: 0.92in;
+  height: 0.92in;
+  place-items: center;
+  border: 2.5px solid var(--ink);
+  border-radius: 50%;
+  background: #ffd84d;
+  color: var(--ink);
+  font-size: 11pt;
+  font-weight: 700;
+  line-height: 1.05;
+  text-align: center;
+  transform: rotate(11deg);
+  box-shadow: 2px 2px 0 rgba(38, 38, 38, 0.2);
+}
+
+/* Sections ----------------------------------------------------------------- */
+
+.section {
+  margin-top: 10pt;
+}
+
+.section-heading {
+  display: inline-block;
+  margin: 0 0 5pt;
+  padding: 1.5pt 8pt 2pt;
+  border: 2px solid var(--ink);
+  border-radius: 9px 13px 10px 14px;
+  background: var(--highlight);
+  font-size: 12.5pt;
+  line-height: 1.1;
+  transform: rotate(-1deg);
+  break-after: avoid;
+}
+
+.section-heading::before {
+  content: "\270E  ";
+  color: var(--accent);
+}
+
+.entry {
+  margin: 0 0 7pt;
+  padding-left: 11pt;
+  border-left: 2px dashed rgba(232, 93, 63, 0.65);
+  break-inside: avoid;
+}
+
+.entry:last-child {
+  margin-bottom: 0;
+}
+
+.entry-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12pt;
+}
+
+.entry-title {
+  font-size: 11pt;
+  font-weight: 700;
+}
+
+.entry-date {
+  flex: none;
+  color: var(--accent-dark);
+  font-size: 9.5pt;
+  white-space: nowrap;
+  transform: rotate(1deg);
+}
+
+.entry-sub {
+  margin-top: 0.5pt;
+  color: var(--muted);
+  font-size: 9.8pt;
+}
+
+.entry-loc {
+  color: var(--faint);
+}
+
+.entry-degree {
+  flex: 0 1 auto;
+  text-align: right;
+  white-space: normal;
+}
+
+.edu-details {
+  margin: 2pt 0 0;
+  color: var(--muted);
+}
+
+/* Bullets ------------------------------------------------------------------ */
+
+.highlights {
+  margin: 2.5pt 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.highlights li {
+  position: relative;
+  margin: 0 0 1pt;
+  padding-left: 13pt;
+  break-inside: avoid;
+}
+
+.highlights li::before {
+  position: absolute;
+  top: 0;
+  left: 0;
+  content: "\2605";
+  color: var(--accent);
+  font-size: 0.9em;
+}
+
+.highlights li:last-child {
+  margin-bottom: 0;
+}
+
+/* Skills ------------------------------------------------------------------- */
+
+.skill-groups {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  column-gap: 12pt;
+  row-gap: 2pt;
+  margin: 0;
+}
+
+.skill-category {
+  align-self: start;
+  padding: 0 4pt;
+  border-radius: 4px;
+  background: var(--highlight);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.skill-items {
+  margin: 0;
+  color: var(--muted);
+}
+
+/* Screen-only footer ------------------------------------------------------- */
+
+.site-footer {
+  max-width: 8.5in;
+  margin: -14px auto 30px;
+  padding: 0 0.42in;
+  text-align: right;
+  color: var(--faint);
+  font-size: 8.5pt;
+}
+
+.site-footer a {
+  border-bottom: 0.5pt solid currentColor;
+}
+
+/* Print toolbar (web preview only; never printed) -------------------------- */
+
+.print-toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 10px 14px;
+  padding: 10px 16px;
+  border-bottom: 1px solid #d8d8d8;
+  background: rgba(255, 255, 255, 0.96);
+  color: #333;
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-size: 13px;
+}
+
+.print-toolbar button {
+  padding: 6px 14px;
+  border: 1px solid #111;
+  border-radius: 3px;
+  background: #111;
+  color: #fff;
+  font: inherit;
+  cursor: pointer;
+}
+
+.print-toolbar button:hover {
+  background: #333;
+}
+
+.print-toolbar kbd {
+  padding: 1px 5px;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  background: #f4f4f4;
+  font-family: inherit;
+  font-size: 12px;
+}
+
+@media screen and (max-width: 880px) {
+  body {
+    background: var(--paper);
+  }
+
+  .page {
+    width: auto;
+    min-height: 0;
+    margin: 0;
+    padding: 24px 20px;
+    box-shadow: none;
+  }
+
+  .burst {
+    top: 18px;
+    right: 18px;
+  }
+
+  .site-footer {
+    max-width: none;
+    margin: 0;
+    padding: 0 20px 24px;
+  }
+}
+
+@media print {
+  html,
+  body {
+    background: #ffffff !important;
+  }
+
+  .print-toolbar {
+    display: none !important;
+  }
+
+  body {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .page {
+    width: auto;
+    min-height: 0;
+    margin: 0;
+    padding: 0;
+    background-image: none;
+    box-shadow: none;
+  }
+
+  .site-footer {
+    display: none !important;
+  }
+
+  a {
+    border-bottom: none;
+  }
+}

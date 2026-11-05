@@ -47,6 +47,31 @@ func TestLoginPageListsProviders(t *testing.T) {
 	}
 }
 
+func TestAboutPageListsTemplates(t *testing.T) {
+	h := newTestHandler(t)
+	rec := httptest.NewRecorder()
+	h.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/about", nil))
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status = %d", rec.Code)
+	}
+	body := rec.Body.String()
+	for _, want := range []string{
+		"Resume styles",
+		"Classic",
+		"Modern",
+		"Sidebar",
+		"Comic",
+		"Dingbats",
+		"Privacy",
+		`href="/about"`,
+	} {
+		if !strings.Contains(body, want) {
+			t.Errorf("about page missing %q", want)
+		}
+	}
+}
+
 func TestAuthStartSetsPKCEAndStateCookies(t *testing.T) {
 	h := newTestHandler(t)
 	rec := httptest.NewRecorder()

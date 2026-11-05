@@ -21,20 +21,24 @@ func (s *Service) PreviewHTML(ctx context.Context, user store.User, resumeID uui
 		return nil, err
 	}
 
-	tpl, ok := resumetpl.Source(detail.TemplateID)
+	tpl, ok := resumetpl.Lookup(detail.TemplateID)
 	if !ok {
 		return nil, fmt.Errorf("unknown template %q", detail.TemplateID)
 	}
-	style, err := fs.ReadFile(assets.FS(), "css/style.css")
+	source, err := tpl.Source()
+	if err != nil {
+		return nil, err
+	}
+	style, err := fs.ReadFile(assets.FS(), tpl.Style)
 	if err != nil {
 		return nil, err
 	}
 
 	doc, err := render.HTML(render.Options{
 		Data:      detail.Data,
-		Template:  tpl,
+		Template:  source,
 		Style:     style,
-		StylePath: "css/style.css",
+		StylePath: tpl.Style,
 		Assets:    assets.FS(),
 		Toolbar:   true,
 	})

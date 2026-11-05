@@ -10,14 +10,15 @@
     <nav class="navbar bg-body border-bottom">
         <div class="container">
             <a class="navbar-brand fw-semibold" href="/">Resumaker</a>
-            {{with .User}}
             <div class="d-flex align-items-center gap-3">
+                <a class="nav-link px-1" href="/about">Help</a>
+                {{with .User}}
                 <span class="text-body-secondary small">{{.DisplayName}}</span>
                 <form method="post" action="/logout" class="m-0">
                     <button class="btn btn-outline-secondary btn-sm" type="submit">Sign out</button>
                 </form>
+                {{end}}
             </div>
-            {{end}}
         </div>
     </nav>
     <main class="container py-4">

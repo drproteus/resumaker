@@ -41,27 +41,43 @@ func TestPreviewHTML(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	resumeID, err := svc.CreateResume(ctx, user, ResumeInput{
-		Name:       "Backend",
-		TemplateID: "default",
-		Data:       []byte(validJSON),
-	})
-	if err != nil {
-		t.Fatal(err)
+	// Each style file has a distinctive declaration, which proves PreviewHTML
+	// picked the template's own stylesheet.
+	signatures := map[string]string{
+		"default":  "Latin Modern Roman",
+		"modern":   "--accent: #0f766e",
+		"sidebar":  "grid-template-columns",
+		"comic":    "Comic Sans MS",
+		"dingbats": "Wingdings-adjacent",
 	}
 
-	doc, err := svc.PreviewHTML(ctx, user, resumeID)
-	if err != nil {
-		t.Fatal(err)
-	}
-	for _, want := range []string{
-		"Jane Example",
-		"data-print",
-		"/static/print.js",
-		"data:font/woff2;base64,",
-	} {
-		if !strings.Contains(string(doc), want) {
-			t.Errorf("preview missing %q", want)
+	var firstID uuid.UUID
+	for _, tpl := range Templates() {
+		signature, ok := signatures[tpl.ID]
+		if !ok {
+			t.Fatalf("test has no style signature for template %q", tpl.ID)
+		}
+
+		id, err := svc.CreateResume(ctx, user, ResumeInput{
+			Name:       tpl.Name,
+			TemplateID: tpl.ID,
+			Data:       []byte(validJSON),
+		})
+		if err != nil {
+			t.Fatalf("create %s: %v", tpl.ID, err)
+		}
+		if firstID == uuid.Nil {
+			firstID = id
+		}
+
+		doc, err := svc.PreviewHTML(ctx, user, id)
+		if err != nil {
+			t.Fatalf("preview %s: %v", tpl.ID, err)
+		}
+		for _, want := range []string{"Jane Example", "data-print", "/static/print.js", signature} {
+			if !strings.Contains(string(doc), want) {
+				t.Errorf("%s preview missing %q", tpl.ID, want)
+			}
 		}
 	}
 
@@ -69,7 +85,7 @@ func TestPreviewHTML(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if _, err := svc.PreviewHTML(ctx, other, resumeID); !errors.Is(err, store.ErrNotFound) {
+	if _, err := svc.PreviewHTML(ctx, other, firstID); !errors.Is(err, store.ErrNotFound) {
 		t.Fatalf("other user previewed resume: %v", err)
 	}
 }

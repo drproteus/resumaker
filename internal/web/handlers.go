@@ -23,6 +23,19 @@ func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/login", http.StatusSeeOther)
 }
 
+// helpView is the data shown on the help and about page.
+type helpView struct {
+	Templates []app.Template
+}
+
+func (s *Server) handleAbout(w http.ResponseWriter, r *http.Request) {
+	p := page{Title: "Help & about", Data: helpView{Templates: app.Templates()}}
+	if user, ok := s.currentUser(r); ok {
+		p.User = &user
+	}
+	s.render(w, http.StatusOK, "about.html", p)
+}
+
 func (s *Server) handleLogin(w http.ResponseWriter, r *http.Request) {
 	if _, ok := s.currentUser(r); ok {
 		http.Redirect(w, r, "/resumes", http.StatusSeeOther)
@@ -35,13 +48,33 @@ func (s *Server) handleLogin(w http.ResponseWriter, r *http.Request) {
 	s.render(w, http.StatusOK, "login.html", page{Title: "Sign in", Data: links})
 }
 
+// resumeRow adds the display name of the resume's style to a stored resume.
+type resumeRow struct {
+	store.Resume
+	TemplateName string
+}
+
 func (s *Server) handleResumeList(w http.ResponseWriter, r *http.Request, user store.User) {
 	resumes, err := s.app.ListResumes(r.Context(), user)
 	if err != nil {
 		s.fail(w, err)
 		return
 	}
-	s.render(w, http.StatusOK, "resumes.html", page{Title: "Your resumes", User: &user, Data: resumes})
+
+	names := make(map[string]string, len(app.Templates()))
+	for _, tpl := range app.Templates() {
+		names[tpl.ID] = tpl.Name
+	}
+	rows := make([]resumeRow, len(resumes))
+	for i, resume := range resumes {
+		name := names[resume.TemplateID]
+		if name == "" {
+			name = resume.TemplateID
+		}
+		rows[i] = resumeRow{Resume: resume, TemplateName: name}
+	}
+
+	s.render(w, http.StatusOK, "resumes.html", page{Title: "Your resumes", User: &user, Data: rows})
 }
 
 func (s *Server) handleResumeNew(w http.ResponseWriter, r *http.Request, user store.User) {

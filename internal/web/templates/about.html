@@ -1,0 +1,89 @@
+{{define "content"}}
+{{with .Data}}
+<div class="row justify-content-center">
+    <div class="col-xl-10">
+        <div class="mb-4">
+            <h1 class="h3 mb-2">Help &amp; about</h1>
+            <p class="lead text-body-secondary mb-0">Resumaker keeps a few versions of your resume, lets you edit
+                them as a structured form, and prints a clean one-page PDF from the browser.</p>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-lg-7">
+                <div class="card shadow-sm mb-4">
+                    <div class="card-body p-4">
+                        <h2 class="h5">Build a resume</h2>
+                        <ol class="mb-4">
+                            <li class="mb-1">Create a resume and pick a style.</li>
+                            <li class="mb-1">Fill in contact details, experience, education and skills.</li>
+                            <li class="mb-1">Save, then open <strong>Preview &amp; print</strong> to check the layout.</li>
+                            <li>Print with the button or <kbd>Ctrl</kbd>/<kbd>⌘</kbd>+<kbd>P</kbd>, and choose
+                                <em>Save as PDF</em>.</li>
+                        </ol>
+
+                        <h3 class="h6">Editor tips</h3>
+                        <ul class="mb-4">
+                            <li class="mb-1">Drag the handle beside a row to reorder contact details, experience,
+                                education or skill groups. With a handle focused, the <kbd>↑</kbd> and <kbd>↓</kbd>
+                                keys move that row.</li>
+                            <li class="mb-1">Add and remove rows freely. Empty rows are ignored when you save.</li>
+                            <li class="mb-1">Put each experience highlight or education detail on its own line.</li>
+                            <li class="mb-1">Separate skills with commas; separate keyword tags with commas too.</li>
+                            <li>Use <strong>Duplicate</strong> on the resumes list to make a variant without
+                                retyping it.</li>
+                        </ul>
+
+                        <h3 class="h6">Printing</h3>
+                        <p class="mb-0 text-body-secondary">The preview is a self-contained HTML page. Page size is
+                            US Letter, and the print stylesheet handles margins and page breaks. In Chrome or Edge,
+                            enable <em>Background graphics</em> if you want the coloured styles to keep their
+                            accents.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-5">
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-body">
+                        <h2 class="h5 mb-0">Resume styles</h2>
+                    </div>
+                    <ul class="list-group list-group-flush">
+                        {{range .Templates}}
+                        <li class="list-group-item">
+                            <div class="fw-semibold">{{.Name}}</div>
+                            <div class="small text-body-secondary">{{.Description}}</div>
+                        </li>
+                        {{end}}
+                    </ul>
+                    <div class="card-footer bg-body small text-body-secondary">Choose a style when creating or
+                        editing a resume. Changing it re-renders the same content in the new layout.</div>
+                </div>
+
+                <div class="card shadow-sm mb-4">
+                    <div class="card-body p-4">
+                        <h2 class="h5">Privacy</h2>
+                        <p class="mb-2">Resume content is encrypted at rest with AES-256-GCM. Each account has its
+                            own data key, wrapped by the server's master key; the plaintext only exists in memory
+                            while a request needs it.</p>
+                        <p class="mb-0 text-body-secondary">Sign-in is handled by GitHub or Google OAuth. Accounts
+                            are keyed by the provider's user ID, never linked by email address, so your resume is
+                            only visible to the identity that created it.</p>
+                    </div>
+                </div>
+
+                <div class="card shadow-sm">
+                    <div class="card-body p-4">
+                        <h2 class="h5">Open source</h2>
+                        <p class="small text-body-secondary">Resumaker is a small Go project. The templates, print
+                            styles and encryption code are all in the repository, and the bundled fonts are licensed
+                            for redistribution.</p>
+                        <a class="btn btn-outline-secondary btn-sm"
+                            href="https://github.com/drproteus/resumaker">View source on GitHub</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{{end}}
+{{end}}

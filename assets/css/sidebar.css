@@ -1,0 +1,394 @@
+/* --------------------------------------------------------------------------
+   Sidebar — an editorial two-column layout.
+   -------------------------------------------------------------------------- */
+
+@page {
+  size: letter;
+  margin: 0.5in;
+}
+
+:root {
+  --ink: #1c2430;
+  --muted: #5b6673;
+  --faint: #8b95a1;
+  --accent: #2f4a6d;
+  --rule: #d7dde5;
+  --paper: #ffffff;
+  --rail: #f2efe8;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: #e9edf1;
+  color: var(--ink);
+  font-family: "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+  font-size: 9.4pt;
+  line-height: 1.38;
+  -webkit-font-smoothing: antialiased;
+}
+
+.page {
+  width: 8.5in;
+  min-height: 11in;
+  margin: 28px auto;
+  padding: 0.5in;
+  background: var(--paper);
+  box-shadow:
+    0 1px 2px rgba(15, 23, 42, 0.12),
+    0 14px 36px rgba(15, 23, 42, 0.12);
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+a:hover {
+  border-bottom: 1px solid currentColor;
+}
+
+/* Masthead ----------------------------------------------------------------- */
+
+.masthead {
+  margin: 0 0 14pt;
+  padding-bottom: 9pt;
+  border-bottom: 1pt solid var(--rule);
+}
+
+.masthead h1 {
+  margin: 0 0 4pt;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 27pt;
+  font-weight: 400;
+  line-height: 1.05;
+  letter-spacing: -0.01em;
+}
+
+.contact {
+  margin: 0;
+  color: var(--muted);
+  font-size: 9pt;
+  letter-spacing: 0.01em;
+}
+
+.sep {
+  padding: 0 0.45em;
+  color: var(--faint);
+}
+
+/* Columns ------------------------------------------------------------------ */
+
+.layout {
+  display: grid;
+  grid-template-columns: 2.05in minmax(0, 1fr);
+  gap: 0.36in;
+  align-items: start;
+}
+
+.rail {
+  padding: 10pt 12pt 12pt;
+  background: var(--rail);
+  border-radius: 2pt;
+}
+
+.main {
+  min-width: 0;
+}
+
+/* Sections ----------------------------------------------------------------- */
+
+.section {
+  margin-top: 11pt;
+}
+
+.rail .section {
+  margin-top: 13pt;
+}
+
+.rail .section:first-child {
+  margin-top: 0;
+}
+
+.section-heading {
+  margin: 0 0 5pt;
+  padding-bottom: 2pt;
+  border-bottom: 0.75pt solid var(--accent);
+  color: var(--accent);
+  font-size: 8.4pt;
+  font-weight: 700;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  break-after: avoid;
+}
+
+.entry {
+  margin: 0 0 8pt;
+  break-inside: avoid;
+}
+
+.entry:last-child {
+  margin-bottom: 0;
+}
+
+.main .entry {
+  position: relative;
+  padding-left: 13pt;
+  border-left: 0.75pt solid var(--rule);
+}
+
+.main .entry::before {
+  position: absolute;
+  top: 3.5pt;
+  left: -2.6pt;
+  width: 4.5pt;
+  height: 4.5pt;
+  border-radius: 50%;
+  background: var(--accent);
+  content: "";
+}
+
+.entry-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12pt;
+}
+
+.entry-title {
+  font-size: 10pt;
+  font-weight: 700;
+}
+
+.entry-date {
+  flex: none;
+  color: var(--faint);
+  font-size: 8.6pt;
+  white-space: nowrap;
+}
+
+.entry-sub {
+  margin-top: 1pt;
+  color: var(--muted);
+  font-size: 9pt;
+  font-style: italic;
+}
+
+.entry-sub .sep {
+  font-style: normal;
+}
+
+.entry-loc {
+  font-style: normal;
+  color: var(--faint);
+}
+
+/* Rail entries ------------------------------------------------------------- */
+
+.rail .entry {
+  margin-bottom: 9pt;
+}
+
+.rail .entry-title {
+  font-size: 9.2pt;
+  line-height: 1.25;
+}
+
+.rail .entry-sub {
+  margin-top: 1pt;
+  font-size: 8.6pt;
+  font-style: normal;
+}
+
+/* Bullets ------------------------------------------------------------------ */
+
+.highlights {
+  margin: 3pt 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.highlights li {
+  position: relative;
+  margin: 0 0 1pt;
+  padding-left: 11pt;
+  break-inside: avoid;
+}
+
+.main .highlights li::before {
+  position: absolute;
+  top: 0;
+  left: 0;
+  content: "\2013";
+  color: var(--accent);
+}
+
+.rail .highlights {
+  margin-top: 2pt;
+  color: var(--muted);
+  font-size: 8.6pt;
+}
+
+.rail .highlights li::before {
+  position: absolute;
+  top: 0;
+  left: 0;
+  content: "\25AA";
+  color: var(--accent);
+  font-size: 0.8em;
+}
+
+.highlights li:last-child {
+  margin-bottom: 0;
+}
+
+/* Skills ------------------------------------------------------------------- */
+
+.skill-groups {
+  margin: 0;
+}
+
+.skill-category {
+  margin-top: 6pt;
+  color: var(--ink);
+  font-size: 8.6pt;
+  font-weight: 700;
+}
+
+.skill-category:first-child {
+  margin-top: 0;
+}
+
+.skill-items {
+  margin: 0;
+  color: var(--muted);
+  font-size: 8.8pt;
+}
+
+.skill-items .sep {
+  padding: 0 0.3em;
+}
+
+/* Screen-only footer ------------------------------------------------------- */
+
+.site-footer {
+  max-width: 8.5in;
+  margin: -14px auto 30px;
+  padding: 0 0.5in;
+  text-align: right;
+  color: var(--faint);
+  font-size: 8.5pt;
+}
+
+.site-footer a {
+  border-bottom: 0.5pt solid currentColor;
+}
+
+/* Print toolbar (web preview only; never printed) -------------------------- */
+
+.print-toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 10px 14px;
+  padding: 10px 16px;
+  border-bottom: 1px solid #d8d8d8;
+  background: rgba(255, 255, 255, 0.96);
+  color: #333;
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-size: 13px;
+}
+
+.print-toolbar button {
+  padding: 6px 14px;
+  border: 1px solid #111;
+  border-radius: 3px;
+  background: #111;
+  color: #fff;
+  font: inherit;
+  cursor: pointer;
+}
+
+.print-toolbar button:hover {
+  background: #333;
+}
+
+.print-toolbar kbd {
+  padding: 1px 5px;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  background: #f4f4f4;
+  font-family: inherit;
+  font-size: 12px;
+}
+
+@media screen and (max-width: 880px) {
+  body {
+    background: var(--paper);
+  }
+
+  .page {
+    width: auto;
+    min-height: 0;
+    margin: 0;
+    padding: 24px 20px;
+    box-shadow: none;
+  }
+
+  .layout {
+    grid-template-columns: 1fr;
+    gap: 6pt;
+  }
+
+  .site-footer {
+    max-width: none;
+    margin: 0;
+    padding: 0 20px 24px;
+  }
+}
+
+@media print {
+  html,
+  body {
+    background: #ffffff !important;
+  }
+
+  .print-toolbar {
+    display: none !important;
+  }
+
+  body {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .page {
+    width: auto;
+    min-height: 0;
+    margin: 0;
+    padding: 0;
+    box-shadow: none;
+  }
+
+  .site-footer {
+    display: none !important;
+  }
+
+  a {
+    border-bottom: none;
+  }
+}

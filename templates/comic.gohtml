@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width" />
+    <meta name="description" content="{{.Fullname}} — Résumé" />
+    <meta name="keywords" content="{{range $index, $keyword := .Keywords}}{{if $index}}, {{end}}{{$keyword}}{{end}}" />
+    <title>{{.Fullname}} — Résumé</title>
+    <style>
+    {{.Style}}
+    </style>
+</head>
+
+<body>
+    {{if .Toolbar}}
+    <div class="print-toolbar">
+        <button type="button" data-print>Print / Save as PDF</button>
+        <span>or press <kbd>Ctrl</kbd>+<kbd>P</kbd> (<kbd>⌘</kbd>+<kbd>P</kbd> on macOS)</span>
+    </div>
+    <script src="/static/print.js" defer></script>
+    {{end}}
+    <div class="page">
+        <div class="burst" aria-hidden="true">HIRE<br>ME!</div>
+
+        <header class="masthead">
+            <h1>{{.Fullname}}</h1>
+            {{if .Contact}}
+            <p class="contact">
+                {{- range $index, $contact := .Contact }}
+                {{- if $index }}<span class="sep">★</span>{{ end }}
+                {{- if eq $contact.Type "email" }}<a href="mailto:{{$contact.Value}}">{{$contact.Value}}</a>
+                {{- else if eq $contact.Type "telephone" }}<a href="tel:{{$contact.Value}}">{{$contact.Value}}</a>
+                {{- else if eq $contact.Type "website" }}<a href="https://{{$contact.Value}}">{{$contact.Value}}</a>
+                {{- else }}{{$contact.Value}}{{ end }}
+                {{- end }}
+            </p>
+            {{end}}
+        </header>
+
+        <main class="resume">
+            {{ if .Experience }}
+            <section class="section">
+                <h2 class="section-heading">Experience</h2>
+                {{ range .Experience }}
+                <article class="entry">
+                    <div class="entry-head">
+                        <span class="entry-title">{{.Title}}</span>
+                        <span class="entry-date">{{.StartDate}} – {{.EndDate}}</span>
+                    </div>
+                    <div class="entry-sub">
+                        <span class="entry-org">{{.Company}}</span>{{ if .Location }}<span class="sep">★</span><span class="entry-loc">{{.Location}}</span>{{ end }}
+                    </div>
+                    {{ if .Highlights }}
+                    <ul class="highlights">
+                        {{ range .Highlights }}
+                        <li>{{.}}</li>
+                        {{ end }}
+                    </ul>
+                    {{ end }}
+                </article>
+                {{ end }}
+            </section>
+            {{ end }}
+
+            {{ if .Education }}
+            <section class="section">
+                <h2 class="section-heading">Education</h2>
+                {{ range .Education }}
+                <article class="entry">
+                    <div class="entry-head">
+                        <span class="entry-title">{{.School}}</span>
+                        <span class="entry-date entry-degree">{{.Degree}}</span>
+                    </div>
+                    {{ if .Highlights }}
+                    <p class="edu-details">
+                        {{ range $index, $highlight := .Highlights }}{{ if $index }}<span class="sep">★</span>{{ end }}{{ $highlight }}{{ end }}
+                    </p>
+                    {{ end }}
+                </article>
+                {{ end }}
+            </section>
+            {{ end }}
+
+            {{ if .Skills }}
+            <section class="section">
+                <h2 class="section-heading">Skills</h2>
+                <dl class="skill-groups">
+                    {{ range .Skills }}
+                    <dt class="skill-category">{{ .Category }}</dt>
+                    <dd class="skill-items">{{ range $index, $skill := .Items }}{{ if $index }}<span class="sep">★</span>{{ end }}{{ $skill }}{{ end }}</dd>
+                    {{ end }}
+                </dl>
+            </section>
+            {{ end }}
+        </main>
+    </div>
+
+    <footer class="site-footer">
+        <a href="https://github.com/drproteus/resumaker">[source]</a>
+    </footer>
+</body>
+
+</html>
