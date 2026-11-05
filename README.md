@@ -2,6 +2,26 @@
 Resumaker is a simple alternative to WYSIWYG editing that uses templates to render a
 resume from JSON into a self-contained HTML page, ready to print or save as PDF.
 
+# Screenshots
+
+![The resumes list with preview, duplicate and delete actions](docs/screenshots/app-list.png)
+
+The editor has a structured form and a raw JSON view that stay in sync:
+
+![The resume editor with its Form and JSON toggle](docs/screenshots/app-editor.png)
+
+## Resume styles
+
+| Classic | Modern | Sidebar |
+| --- | --- | --- |
+| [![Classic resume style](docs/screenshots/template-classic.png)](docs/screenshots/template-classic.png) | [![Modern resume style](docs/screenshots/template-modern.png)](docs/screenshots/template-modern.png) | [![Sidebar resume style](docs/screenshots/template-sidebar.png)](docs/screenshots/template-sidebar.png) |
+
+| Comic | Dingbats |
+| --- | --- |
+| [![Comic resume style](docs/screenshots/template-comic.png)](docs/screenshots/template-comic.png) | [![Dingbats resume style](docs/screenshots/template-dingbats.png)](docs/screenshots/template-dingbats.png) |
+
+Screenshots use synthetic resume data.
+
 # Quickstart
 ```bash
 $ go build resumaker.go
