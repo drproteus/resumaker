@@ -54,9 +54,13 @@ existing version.
 If `GEMINI_API_KEY` is set, the resume editor offers **Tailor with Gemini**. Paste a
 job description, one or more job posting links, skills to highlight, or any other
 instructions, and Gemini creates a new resume instead of changing the original. The
-new version's JSON has `"ai": true` and a `"comments"` field explaining which content
-was reordered, rephrased or emphasised and why. Job links are passed to Gemini through
-its URL context tool, so the server does not fetch user-supplied URLs.
+generation runs in the background, so the browser stays responsive while it works. The
+new resume is named after the role and company when the instructions give them. Gemini
+explains its changes in the resume's `"comments"` array, each starting with `_Gemini:`.
+The editor shows those notes with a Gemini icon instead of the prefix.
+Users' own comments (to-dos, reminders) live in the same array and are never printed.
+Job links are passed to Gemini through its URL context tool, so the server does not
+fetch user-supplied URLs.
 
 `GEMINI_MODEL` defaults to `gemini-flash-latest`; set `GEMINI_API_BASE_URL` only when
 using a compatible proxy or a different API host. Resume JSON is sent to Google when

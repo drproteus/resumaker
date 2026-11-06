@@ -61,11 +61,17 @@ func New(opts Options) *Client {
 	}
 }
 
+// Result is a tailored resume. Resume is the resume JSON without the name, and
+// Name is the suggested name for the new resume.
+type Result struct {
+	Name   string
+	Resume []byte
+}
+
 // TailorResume asks Gemini to rewrite a resume for the supplied instructions.
-// It returns the complete resume JSON, including the ai and comments fields.
-func (c *Client) TailorResume(ctx context.Context, resumeJSON []byte, prompt string) ([]byte, error) {
+func (c *Client) TailorResume(ctx context.Context, resumeJSON []byte, prompt string) (Result, error) {
 	if c == nil || c.apiKey == "" {
-		return nil, errors.New("gemini API key is not configured")
+		return Result{}, errors.New("gemini API key is not configured")
 	}
 
 	body := generateRequest{
@@ -91,36 +97,61 @@ func (c *Client) TailorResume(ctx context.Context, resumeJSON []byte, prompt str
 
 	payload, err := json.Marshal(body)
 	if err != nil {
-		return nil, err
+		return Result{}, err
 	}
 
 	endpoint := fmt.Sprintf("%s/models/%s:generateContent", c.baseURL, url.PathEscape(c.model))
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, endpoint, bytes.NewReader(payload))
 	if err != nil {
-		return nil, err
+		return Result{}, err
 	}
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("x-goog-api-key", c.apiKey)
 
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
-		return nil, err
+		return Result{}, err
 	}
 	defer resp.Body.Close()
 
 	raw, err := io.ReadAll(io.LimitReader(resp.Body, maxResponseBytes))
 	if err != nil {
-		return nil, err
+		return Result{}, err
 	}
 	if resp.StatusCode < http.StatusOK || resp.StatusCode >= http.StatusMultipleChoices {
-		return nil, fmt.Errorf("gemini: status %d: %s", resp.StatusCode, apiError(raw))
+		return Result{}, fmt.Errorf("gemini: status %d: %s", resp.StatusCode, apiError(raw))
 	}
 
 	text, err := responseText(raw)
 	if err != nil {
-		return nil, err
+		return Result{}, err
 	}
-	return extractJSON(text)
+	object, err := extractJSON(text)
+	if err != nil {
+		return Result{}, err
+	}
+	return splitName(object)
+}
+
+// splitName removes resume_name from the model's object, so the stored resume
+// matches the render.ResumeData schema.
+func splitName(object []byte) (Result, error) {
+	var fields map[string]json.RawMessage
+	if err := json.Unmarshal(object, &fields); err != nil {
+		return Result{}, fmt.Errorf("gemini: response JSON: %w", err)
+	}
+	var name string
+	if raw, ok := fields["resume_name"]; ok {
+		if err := json.Unmarshal(raw, &name); err != nil {
+			return Result{}, fmt.Errorf("gemini: resume_name: %w", err)
+		}
+		delete(fields, "resume_name")
+	}
+	resume, err := json.Marshal(fields)
+	if err != nil {
+		return Result{}, err
+	}
+	return Result{Name: strings.TrimSpace(name), Resume: resume}, nil
 }
 
 func containsURL(s string) bool {
@@ -246,10 +277,15 @@ You may reorder and rewrite existing content, emphasise relevant experience, and
 keywords that are directly supported by the original resume. If the instructions
 mention URLs, use the URL context tool to read them before writing.
 
-The "ai" field must be true. The "comments" field must contain a concise but specific
-explanation of the choices you made: which parts you reordered or rephrased, which
-skills or achievements you highlighted, and how the instructions or job description
-influenced the result. Address the user directly in the comments.
+The "comments" array holds only your own notes about the choices you made: which parts
+you reordered or rephrased, which skills or achievements you highlighted, and how the
+instructions or job description influenced the result. Write one short note per array
+item, addressed to the user. Do not repeat the user's existing comments; the application
+keeps those itself. Leave comments empty only if you changed nothing.
+
+The "resume_name" field is the name for this new version. If the instructions name a
+company, position, title or other detail, combine what is given into a short name, for
+example "Senior Go Engineer - Acme". Otherwise, base it on the original resume name.
 
 Do not include markdown, code fences, or any text outside the JSON object.`
 
@@ -309,8 +345,8 @@ var responseSchema = json.RawMessage(`{
         "required": ["category", "items"]
       }
     },
-    "ai": {"type": "BOOLEAN"},
-    "comments": {"type": "STRING"}
+    "comments": {"type": "ARRAY", "items": {"type": "STRING"}},
+    "resume_name": {"type": "STRING"}
   },
-  "required": ["fullname", "contact", "experience", "education", "keywords", "skills", "ai", "comments"]
+  "required": ["fullname", "contact", "experience", "education", "keywords", "skills", "comments", "resume_name"]
 }`)

@@ -27,8 +27,7 @@ func TestNewResumeFormRenders(t *testing.T) {
 	for _, want := range []string{
 		`name="fullname"`,
 		`name="exp_highlights"`,
-		`name="ai"`,
-		`name="comments"`,
+		`data-add="comment"`,
 		`data-add="contact"`,
 		`data-drag-handle`,
 		`data-template="experience"`,
@@ -247,11 +246,14 @@ func TestReadResumeFormFormViewBuildsJSONPreview(t *testing.T) {
 	}
 }
 
-func TestResumeFormRoundTripsAIFields(t *testing.T) {
-	data := []byte(`{"fullname": "Jane Example", "ai": true, "comments": "Led with Go."}`)
+func TestResumeFormRoundTripsComments(t *testing.T) {
+	data := []byte(`{"fullname": "Jane Example", "comments": ["TODO: call recruiter", "_Gemini: Led with Go."]}`)
 	form := formFromData(data).withEditor("/resumes/x")
-	if !form.AI || form.Comments != "Led with Go." {
-		t.Fatalf("AI fields not loaded: %+v", form)
+	if len(form.Comments) != 2 || form.Comments[0].Text != "TODO: call recruiter" || form.Comments[0].AI {
+		t.Fatalf("comments not loaded: %+v", form.Comments)
+	}
+	if !form.Comments[1].AI || form.Comments[1].Text != "Led with Go." {
+		t.Fatalf("Gemini prefix not split off: %+v", form.Comments[1])
 	}
 
 	in, err := form.input()
@@ -262,18 +264,57 @@ func TestResumeFormRoundTripsAIFields(t *testing.T) {
 	if err := json.Unmarshal(in.Data, &roundTripped); err != nil {
 		t.Fatal(err)
 	}
-	if !roundTripped.AI || roundTripped.Comments != "Led with Go." {
-		t.Errorf("AI fields lost: %+v", roundTripped)
+	if strings.Join(roundTripped.Comments, "|") != "TODO: call recruiter|_Gemini: Led with Go." {
+		t.Errorf("comments lost: %+v", roundTripped.Comments)
 	}
 }
 
-func TestEditFormShowsGeminiTailorForm(t *testing.T) {
+func TestParseResumeFormKeepsCommentSources(t *testing.T) {
+	form := parseResumeForm(url.Values{
+		"name":           {"Backend"},
+		"template":       {"default"},
+		"comment":        {"Mine", "", "Gemini's"},
+		"comment_source": {"user", "user", "gemini"},
+	})
+	in, err := form.input()
+	if err != nil {
+		t.Fatal(err)
+	}
+	var rd render.ResumeData
+	if err := json.Unmarshal(in.Data, &rd); err != nil {
+		t.Fatal(err)
+	}
+	if strings.Join(rd.Comments, "|") != "Mine|_Gemini: Gemini's" {
+		t.Errorf("comments = %q", rd.Comments)
+	}
+}
+
+func TestParseResumeFormDropsEmptyComments(t *testing.T) {
+	form := parseResumeForm(url.Values{
+		"name":     {"Backend"},
+		"template": {"default"},
+		"comment":  {"  Ask about the team  ", "", "   "},
+	})
+	in, err := form.input()
+	if err != nil {
+		t.Fatal(err)
+	}
+	var rd render.ResumeData
+	if err := json.Unmarshal(in.Data, &rd); err != nil {
+		t.Fatal(err)
+	}
+	if len(rd.Comments) != 1 || rd.Comments[0] != "Ask about the team" {
+		t.Errorf("comments = %q", rd.Comments)
+	}
+}
+
+func TestEditFormShowsComments(t *testing.T) {
 	srv, err := New(Options{}, nil, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	form := formFromData([]byte(`{"fullname": "Jane Example", "ai": true, "comments": "Led with Go."}`)).withEditor("/resumes/abc")
+	form := formFromData([]byte(`{"fullname": "Jane Example", "comments": ["Led with Go."]}`)).withEditor("/resumes/abc")
 	form.ID = "abc"
 	form.Name = "Backend"
 	form.AIAvailable = true
@@ -289,7 +330,7 @@ func TestEditFormShowsGeminiTailorForm(t *testing.T) {
 		`action="/resumes/abc/tailor"`,
 		`name="prompt"`,
 		`Tailor with Gemini`,
-		`id="ai" name="ai" value="1" checked`,
+		`name="comment"`,
 		`Led with Go.`,
 	} {
 		if !strings.Contains(body, want) {

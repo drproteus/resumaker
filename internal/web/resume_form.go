@@ -34,6 +34,12 @@ type skillForm struct {
 	Items    string
 }
 
+type commentForm struct {
+	Text string
+	// AI is true for notes written by Gemini. Their prefix is shown as an icon.
+	AI bool
+}
+
 // resumeForm is the editor's model. Repeated sections are rendered as rows and
 // parsed back from repeated form fields, so no JavaScript is needed to submit.
 type resumeForm struct {
@@ -52,8 +58,7 @@ type resumeForm struct {
 	Education  []educationForm
 	Keywords   string
 	Skills     []skillForm
-	AI         bool
-	Comments   string
+	Comments   []commentForm
 
 	// AIAvailable controls whether the edit page offers the Gemini form.
 	AIAvailable bool
@@ -67,6 +72,7 @@ type resumeForm struct {
 	EmptyExperience experienceForm
 	EmptyEducation  educationForm
 	EmptySkill      skillForm
+	EmptyComment    commentForm
 }
 
 func newResumeForm(action string) resumeForm {
@@ -102,8 +108,6 @@ func formFromData(data []byte) resumeForm {
 	f := resumeForm{
 		Fullname: rd.Fullname,
 		Keywords: strings.Join(rd.Keywords, ", "),
-		AI:       rd.AI,
-		Comments: rd.Comments,
 	}
 	for _, c := range rd.Contact {
 		f.Contacts = append(f.Contacts, contactForm{Type: normalizeContactType(c.Type), Value: c.Value})
@@ -131,6 +135,10 @@ func formFromData(data []byte) resumeForm {
 			Items:    strings.Join(s.Items, ", "),
 		})
 	}
+	for _, c := range rd.Comments {
+		text, ai := render.SplitGeminiComment(c)
+		f.Comments = append(f.Comments, commentForm{Text: text, AI: ai})
+	}
 	return f
 }
 
@@ -142,8 +150,6 @@ func parseResumeForm(v url.Values) resumeForm {
 		TemplateID: v.Get("template"),
 		Fullname:   strings.TrimSpace(v.Get("fullname")),
 		Keywords:   strings.TrimSpace(v.Get("keywords")),
-		AI:         v.Get("ai") == "1" || v.Get("ai") == "on",
-		Comments:   strings.TrimSpace(v.Get("comments")),
 	}
 
 	types, values := v["contact_type"], v["contact_value"]
@@ -205,6 +211,15 @@ func parseResumeForm(v url.Values) resumeForm {
 		f.Skills = append(f.Skills, s)
 	}
 
+	texts, sources := v["comment"], v["comment_source"]
+	for i := 0; i < maxLen(texts, sources); i++ {
+		text := strings.TrimSpace(at(texts, i))
+		if text == "" {
+			continue
+		}
+		f.Comments = append(f.Comments, commentForm{Text: text, AI: at(sources, i) == "gemini"})
+	}
+
 	return f
 }
 
@@ -229,8 +244,7 @@ func (f resumeForm) resumeData() render.ResumeData {
 		Education:  []render.ResumeDataEdu{},
 		Keywords:   splitList(f.Keywords),
 		Skills:     []render.ResumeDataSkillGroup{},
-		AI:         f.AI,
-		Comments:   strings.TrimSpace(f.Comments),
+		Comments:   []string{},
 	}
 	for _, c := range f.Contacts {
 		if c.Value == "" {
@@ -263,6 +277,16 @@ func (f resumeForm) resumeData() render.ResumeData {
 			Category: strings.TrimSpace(s.Category),
 			Items:    splitList(s.Items),
 		})
+	}
+	for _, c := range f.Comments {
+		text := strings.TrimSpace(c.Text)
+		if text == "" {
+			continue
+		}
+		if c.AI {
+			text = render.GeminiCommentPrefix + " " + text
+		}
+		rd.Comments = append(rd.Comments, text)
 	}
 	return rd
 }

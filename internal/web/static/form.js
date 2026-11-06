@@ -242,17 +242,10 @@
       experience: [],
       education: [],
       keywords: splitList(fieldText(document, "keywords")),
-      skills: []
+      skills: [],
+      comments: []
     };
 
-    var ai = document.querySelector('[name="ai"]');
-    if (ai && ai.checked) {
-      data.ai = true;
-    }
-    var comments = fieldText(document, "comments");
-    if (comments) {
-      data.comments = comments;
-    }
 
     sectionRows("contact").forEach(function (row) {
       var value = fieldText(row, "contact_value");
@@ -300,6 +293,15 @@
       }
     });
 
+    sectionRows("comment").forEach(function (row) {
+      var text = fieldText(row, "comment");
+      if (!text) {
+        return;
+      }
+      var isGemini = fieldText(row, "comment_source") === "gemini";
+      data.comments.push(isGemini ? "_Gemini: " + text : text);
+    });
+
     return data;
   }
 
@@ -334,11 +336,6 @@
   function populateForm(data) {
     setField(document, "fullname", stringValue(data.fullname));
     setField(document, "keywords", Array.isArray(data.keywords) ? data.keywords.join(", ") : "");
-    setField(document, "comments", stringValue(data.comments));
-    var ai = document.querySelector('[name="ai"]');
-    if (ai) {
-      ai.checked = data.ai === true;
-    }
 
     replaceRows("contact", Array.isArray(data.contact) ? data.contact : [], function (row, item) {
       var type = contactType(stringValue(item.type));
@@ -365,6 +362,22 @@
     replaceRows("skill", Array.isArray(data.skills) ? data.skills : [], function (row, item) {
       setField(row, "skill_category", stringValue(item.category));
       setField(row, "skill_items", textList(item.items));
+    });
+
+    var comments = Array.isArray(data.comments) ? data.comments : [];
+    replaceRows("comment", comments.map(function (comment) {
+      var text = stringValue(comment);
+      var match = /^\s*_gemini:\s*/i.exec(text);
+      return match
+        ? { text: text.slice(match[0].length).trim(), ai: true }
+        : { text: text.trim(), ai: false };
+    }), function (row, item) {
+      setField(row, "comment", stringValue(item.text));
+      setField(row, "comment_source", item.ai ? "gemini" : "user");
+      var mark = row.querySelector("[data-gemini-mark]");
+      if (mark) {
+        mark.classList.toggle("invisible", !item.ai);
+      }
     });
   }
 
@@ -409,7 +422,7 @@
     if (!data || typeof data !== "object" || Array.isArray(data)) {
       return "The JSON must be an object.";
     }
-    var allowed = ["fullname", "contact", "experience", "education", "keywords", "skills", "ai", "comments"];
+    var allowed = ["fullname", "contact", "experience", "education", "keywords", "skills", "comments"];
     var unknown = Object.keys(data).filter(function (key) {
       return allowed.indexOf(key) < 0;
     });
@@ -419,11 +432,15 @@
     if ("fullname" in data && typeof data.fullname !== "string") {
       return "fullname must be a string.";
     }
-    if ("ai" in data && typeof data.ai !== "boolean") {
-      return "ai must be a boolean.";
-    }
-    if ("comments" in data && typeof data.comments !== "string") {
-      return "comments must be a string.";
+    if ("comments" in data) {
+      if (!Array.isArray(data.comments)) {
+        return "comments must be an array.";
+      }
+      for (var c = 0; c < data.comments.length; c++) {
+        if (typeof data.comments[c] !== "string") {
+          return "comments must contain strings.";
+        }
+      }
     }
     if ("keywords" in data) {
       if (!Array.isArray(data.keywords)) {

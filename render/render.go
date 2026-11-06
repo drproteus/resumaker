@@ -44,13 +44,28 @@ type ResumeData struct {
 	Education  []ResumeDataEdu        `json:"education"`
 	Keywords   []string               `json:"keywords"`
 	Skills     []ResumeDataSkillGroup `json:"skills"`
-	// AI marks resumes produced by the Gemini integration.
-	AI bool `json:"ai,omitempty"`
-	// Comments explains the choices the AI made when producing the resume.
-	Comments string       `json:"comments,omitempty"`
+	// Comments are private notes. They are kept with the resume but never printed.
+	Comments []string     `json:"comments"`
 	Style    template.CSS `json:"-"`
 	// Toolbar adds a print button and instructions, used by the web preview.
 	Toolbar bool `json:"-"`
+}
+
+// GeminiCommentPrefix marks comments written by Gemini, so they can be told apart
+// from the user's own notes.
+const GeminiCommentPrefix = "_Gemini:"
+
+// SplitGeminiComment returns a comment's text without the Gemini prefix, and
+// whether the comment was written by Gemini. The bare "Gemini:" label is also
+// accepted, since the model sometimes writes it without the underscore.
+func SplitGeminiComment(comment string) (string, bool) {
+	comment = strings.TrimSpace(comment)
+	for _, prefix := range []string{GeminiCommentPrefix, GeminiCommentPrefix[1:]} {
+		if len(comment) >= len(prefix) && strings.EqualFold(comment[:len(prefix)], prefix) {
+			return strings.TrimSpace(comment[len(prefix):]), true
+		}
+	}
+	return comment, false
 }
 
 // Options describes a single render. Data, Template and Style are the only

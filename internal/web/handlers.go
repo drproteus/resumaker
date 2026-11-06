@@ -1,8 +1,8 @@
 package web
 
 import (
+	"encoding/json"
 	"errors"
-	"log"
 	"net/http"
 
 	"github.com/google/uuid"
@@ -176,8 +176,9 @@ func (s *Server) handleResumeDuplicate(w http.ResponseWriter, r *http.Request, u
 	http.Redirect(w, r, "/resumes/"+newID.String(), http.StatusSeeOther)
 }
 
-// handleResumeTailor creates a new AI-generated version of a resume. The
-// original stays untouched, so the user can compare the two.
+// handleResumeTailor starts an AI-generated version of a resume in the
+// background and sends the browser to its progress page. The original stays
+// untouched, so the user can compare the two.
 func (s *Server) handleResumeTailor(w http.ResponseWriter, r *http.Request, user store.User) {
 	id, ok := parseID(w, r)
 	if !ok {
@@ -190,20 +191,59 @@ func (s *Server) handleResumeTailor(w http.ResponseWriter, r *http.Request, user
 	}
 	prompt := r.PostFormValue("prompt")
 
-	newID, err := s.app.TailorResume(r.Context(), user, id, prompt)
+	jobID, err := s.app.StartTailor(r.Context(), user, id, prompt)
 	if err != nil {
 		var inputErr *app.InputError
 		if errors.As(err, &inputErr) {
 			s.renderTailorError(w, r, user, id, prompt, inputErr.Msg, http.StatusUnprocessableEntity)
 			return
 		}
-		log.Printf("tailor resume %s: %v", id, err)
-		s.renderTailorError(w, r, user, id, prompt,
-			"Gemini could not generate a resume. Please try again in a moment.",
-			http.StatusBadGateway)
+		s.resumeError(w, r, err)
 		return
 	}
-	http.Redirect(w, r, "/resumes/"+newID.String(), http.StatusSeeOther)
+	http.Redirect(w, r, "/tailoring/"+jobID, http.StatusSeeOther)
+}
+
+// handleTailoring shows a generation in progress. Once it finishes, the browser
+// is sent to the new resume. Without JavaScript, the page reloads itself.
+func (s *Server) handleTailoring(w http.ResponseWriter, r *http.Request, user store.User) {
+	job, err := s.app.Tailoring(user, r.PathValue("job"))
+	if err != nil {
+		http.NotFound(w, r)
+		return
+	}
+	switch job.Status {
+	case app.TailoringDone:
+		http.Redirect(w, r, "/resumes/"+job.ResumeID.String(), http.StatusSeeOther)
+		return
+	case app.TailoringFailed:
+		s.render(w, http.StatusOK, "tailoring.html", page{Title: "Tailoring failed", User: &user, Data: job})
+		return
+	}
+	s.render(w, http.StatusOK, "tailoring.html", page{Title: "Tailoring resume", User: &user, Data: job})
+}
+
+// handleTailoringStatus reports a job's state as JSON for the progress page.
+func (s *Server) handleTailoringStatus(w http.ResponseWriter, r *http.Request, user store.User) {
+	job, err := s.app.Tailoring(user, r.PathValue("job"))
+	if err != nil {
+		http.NotFound(w, r)
+		return
+	}
+	status := tailoringStatus{Status: string(job.Status), Error: job.Error}
+	if job.Status == app.TailoringDone {
+		status.URL = "/resumes/" + job.ResumeID.String()
+	}
+	h := w.Header()
+	h.Set("Content-Type", "application/json")
+	h.Set("Cache-Control", "no-store")
+	json.NewEncoder(w).Encode(status)
+}
+
+type tailoringStatus struct {
+	Status string `json:"status"`
+	URL    string `json:"url,omitempty"`
+	Error  string `json:"error,omitempty"`
 }
 
 func (s *Server) renderTailorError(w http.ResponseWriter, r *http.Request, user store.User, id uuid.UUID, prompt, message string, status int) {

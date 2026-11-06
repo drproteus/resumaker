@@ -22,7 +22,7 @@ func TestTailorResumeSendsPromptAndSchema(t *testing.T) {
 		w.Header().Set("Content-Type", "application/json")
 		_, _ = w.Write([]byte(`{
 			"candidates": [{
-				"content": {"parts": [{"text": "{\"fullname\":\"Jane\",\"ai\":true,\"comments\":\"Because.\"}"}]},
+				"content": {"parts": [{"text": "{\"fullname\":\"Jane\",\"comments\":[\"Because.\"],\"resume_name\":\"Go Engineer - Acme\"}"}]},
 				"finishReason": "STOP"
 			}]
 		}`))
@@ -35,12 +35,18 @@ func TestTailorResumeSendsPromptAndSchema(t *testing.T) {
 		BaseURL:    srv.URL,
 		HTTPClient: srv.Client(),
 	})
-	out, err := client.TailorResume(context.Background(), []byte(`{"fullname":"Jane"}`), "Read https://example.com/job and emphasise Go.")
+	result, err := client.TailorResume(context.Background(), []byte(`{"fullname":"Jane"}`), "Read https://example.com/job and emphasise Go.")
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !strings.Contains(string(out), `"ai":true`) {
-		t.Errorf("output = %s", out)
+	if result.Name != "Go Engineer - Acme" {
+		t.Errorf("name = %q", result.Name)
+	}
+	if strings.Contains(string(result.Resume), "resume_name") {
+		t.Errorf("name leaked into the resume: %s", result.Resume)
+	}
+	if !strings.Contains(string(result.Resume), `"comments":["Because."]`) {
+		t.Errorf("resume = %s", result.Resume)
 	}
 	if gotPath != "/models/test-model:generateContent" {
 		t.Errorf("path = %q", gotPath)
@@ -117,7 +123,7 @@ func TestExtractJSON(t *testing.T) {
 		"plain":          `{"fullname":"Jane"}`,
 		"fenced":         "```json\n{\"fullname\":\"Jane\"}\n```",
 		"trailing text":  "Here is the resume:\n{\"fullname\":\"Jane\"}\nDone.",
-		"braces in text": `{"fullname":"Jane","comments":"Use Go {and} SQL"}`,
+		"braces in text": `{"fullname":"Jane","comments":["Use Go {and} SQL"]}`,
 	}
 	for name, in := range tests {
 		t.Run(name, func(t *testing.T) {

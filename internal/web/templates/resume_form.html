@@ -60,15 +60,6 @@
                                 <input class="form-control" id="keywords" name="keywords" value="{{.Keywords}}">
                                 <div class="form-text">Comma-separated, used in the page metadata.</div>
                             </div>
-                            <div class="col-12">
-                                <div class="form-check mb-2">
-                                    <input class="form-check-input" type="checkbox" id="ai" name="ai" value="1"{{if .AI}} checked{{end}}>
-                                    <label class="form-check-label" for="ai">AI-assisted resume</label>
-                                </div>
-                                <label class="form-label" for="comments">AI notes</label>
-                                <textarea class="form-control" id="comments" name="comments" rows="3" placeholder="Why the AI made these choices">{{.Comments}}</textarea>
-                                <div class="form-text">Context explaining the AI's changes. Kept with the resume JSON and never printed.</div>
-                            </div>
                         </div>
                     </div>
                 </div>
@@ -112,6 +103,17 @@
                         {{range .Skills}}{{template "skill_row" .}}{{else}}{{template "skill_row" $form.EmptySkill}}{{end}}
                     </div>
                 </div>
+
+                <div class="card shadow-sm mb-3">
+                    <div class="card-header bg-body d-flex justify-content-between align-items-center">
+                        <h2 class="h5 mb-0">Comments</h2>
+                        <button class="btn btn-sm btn-outline-primary" type="button" data-add="comment" hidden>Add comment</button>
+                    </div>
+                    <div class="card-body" data-rows="comment">
+                        {{range .Comments}}{{template "comment_row" .}}{{else}}{{template "comment_row" $form.EmptyComment}}{{end}}
+                    </div>
+                    <div class="card-footer bg-body small text-body-secondary">Private notes such as to-dos or reminders. They are never printed. Notes from Gemini are marked with its icon.</div>
+                </div>
             </div>
 
             <div class="editor-panel" data-editor-panel="json">
@@ -143,7 +145,7 @@
                         placeholder="Paste the job description or a link to it, then add anything you want emphasised.">{{.Prompt}}</textarea>
                     <div class="d-flex align-items-center gap-2">
                         <button class="btn btn-primary" type="submit">Create AI version</button>
-                        <span class="form-text m-0">Job links are read by Gemini, not fetched by this server.</span>
+                        <span class="form-text m-0">Gemini works in the background, and job links are read by Gemini, not this server.</span>
                     </div>
                 </form>
             </div>
@@ -172,6 +174,7 @@
         <template data-template="experience">{{template "experience_row" .EmptyExperience}}</template>
         <template data-template="education">{{template "education_row" .EmptyEducation}}</template>
         <template data-template="skill">{{template "skill_row" .EmptySkill}}</template>
+        <template data-template="comment">{{template "comment_row" .EmptyComment}}</template>
     </div>
 </div>
 {{end}}
@@ -253,6 +256,23 @@
             <label class="form-label small">Details</label>
             <textarea class="form-control" name="edu_highlights" rows="2" placeholder="One detail per line">{{.Highlights}}</textarea>
         </div>
+    </div>
+</div>
+{{end}}
+
+{{define "comment_row"}}
+<div class="row g-2 align-items-center mb-2" data-row>
+    <input type="hidden" name="comment_source" value="{{if .AI}}gemini{{else}}user{{end}}">
+    <div class="col-auto d-flex{{if not .AI}} invisible{{end}}" data-gemini-mark>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" class="text-primary" role="img" aria-label="Gemini">
+            <path d="M12 0C12 6.6 17.4 12 24 12C17.4 12 12 17.4 12 24C12 17.4 6.6 12 0 12C6.6 12 12 6.6 12 0Z"/>
+        </svg>
+    </div>
+    <div class="col">
+        <input class="form-control" name="comment" value="{{.Text}}" aria-label="Comment" placeholder="For example, follow up with the recruiter Friday">
+    </div>
+    <div class="col-auto">
+        <button class="btn btn-link btn-sm text-body-secondary text-decoration-none px-2" type="button" data-remove aria-label="Delete comment" title="Delete comment" hidden>&times;</button>
     </div>
 </div>
 {{end}}

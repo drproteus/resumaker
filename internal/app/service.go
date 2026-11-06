@@ -19,9 +19,10 @@ import (
 const sessionTTL = 30 * 24 * time.Hour
 
 type Service struct {
-	store     *store.Store
-	keys      *envelope.Keyring
-	generator ResumeGenerator
+	store      *store.Store
+	keys       *envelope.Keyring
+	generator  ResumeGenerator
+	tailorings *tailorings
 }
 
 // Option configures optional service integrations.
@@ -35,7 +36,7 @@ func WithGenerator(g ResumeGenerator) Option {
 }
 
 func New(st *store.Store, keys *envelope.Keyring, opts ...Option) *Service {
-	svc := &Service{store: st, keys: keys}
+	svc := &Service{store: st, keys: keys, tailorings: newTailorings()}
 	for _, opt := range opts {
 		opt(svc)
 	}
