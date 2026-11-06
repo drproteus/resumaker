@@ -45,7 +45,7 @@ type page struct {
 
 func New(opts Options, svc *app.Service, providers []*auth.Provider) (*Server, error) {
 	pages := map[string]*template.Template{}
-	for _, name := range []string{"about.html", "login.html", "resumes.html", "resume_form.html"} {
+	for _, name := range []string{"about.html", "login.html", "resumes.html", "resume_form.html", "tailoring.html"} {
 		t, err := template.New("").ParseFS(assets, "templates/layout.html", "templates/"+name)
 		if err != nil {
 			return nil, err
@@ -86,8 +86,12 @@ func (s *Server) Handler() http.Handler {
 	mux.HandleFunc("GET /resumes/{id}", s.requireUser(s.handleResumeEdit))
 	mux.HandleFunc("POST /resumes/{id}", s.requireUser(s.handleResumeUpdate))
 	mux.HandleFunc("POST /resumes/{id}/duplicate", s.requireUser(s.handleResumeDuplicate))
+	mux.HandleFunc("POST /resumes/{id}/tailor", s.requireUser(s.handleResumeTailor))
 	mux.HandleFunc("POST /resumes/{id}/delete", s.requireUser(s.handleResumeDelete))
 	mux.HandleFunc("GET /resumes/{id}/preview", s.requireUser(s.handlePreview))
+
+	mux.HandleFunc("GET /tailoring/{job}", s.requireUser(s.handleTailoring))
+	mux.HandleFunc("GET /tailoring/{job}/status", s.requireUser(s.handleTailoringStatus))
 
 	// Rejects cross-site form posts, so no CSRF tokens are needed.
 	csrf := http.NewCrossOriginProtection()

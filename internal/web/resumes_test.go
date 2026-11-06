@@ -8,8 +8,36 @@ import (
 
 	"github.com/google/uuid"
 
+	"earthmanlabs/resumaker/internal/app"
 	"earthmanlabs/resumaker/internal/store"
 )
+
+func TestTailoringPageRendersStates(t *testing.T) {
+	srv, err := New(Options{}, nil, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	render := func(job app.Tailoring) string {
+		var buf bytes.Buffer
+		if err := srv.pages["tailoring.html"].ExecuteTemplate(&buf, "layout", page{Title: "Tailoring", Data: job}); err != nil {
+			t.Fatal(err)
+		}
+		return buf.String()
+	}
+
+	pending := render(app.Tailoring{ID: "job1", Status: app.TailoringPending})
+	for _, want := range []string{`data-status-url="/tailoring/job1/status"`, "/static/tailoring.js"} {
+		if !strings.Contains(pending, want) {
+			t.Errorf("pending page missing %q", want)
+		}
+	}
+
+	failed := render(app.Tailoring{ID: "job1", Status: app.TailoringFailed, Error: "Gemini could not generate a resume."})
+	if !strings.Contains(failed, "Gemini could not generate a resume.") || strings.Contains(failed, "data-tailoring ") {
+		t.Error("failed page did not show the error")
+	}
+}
 
 func TestResumeListActions(t *testing.T) {
 	srv, err := New(Options{}, nil, nil)

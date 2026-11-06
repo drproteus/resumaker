@@ -143,6 +143,15 @@
     }
   });
 
+  // --- To-do checkboxes ----------------------------------------------------
+
+  document.addEventListener("change", function (event) {
+    if (!event.target.matches("[data-todo-check]")) {
+      return;
+    }
+    syncTodoRow(event.target.closest("[data-row]"));
+  });
+
   // --- Contact placeholders ------------------------------------------------
 
   var placeholders = {
@@ -242,8 +251,10 @@
       experience: [],
       education: [],
       keywords: splitList(fieldText(document, "keywords")),
-      skills: []
+      skills: [],
+      comments: []
     };
+
 
     sectionRows("contact").forEach(function (row) {
       var value = fieldText(row, "contact_value");
@@ -291,7 +302,57 @@
       }
     });
 
+    sectionRows("comment").forEach(function (row) {
+      var text = fieldText(row, "comment");
+      if (!text) {
+        return;
+      }
+      data.comments.push(storedComment(text, fieldText(row, "comment_source")));
+    });
+
     return data;
+  }
+
+  // Comments are stored as strings with a kind prefix. The hidden comment_source
+  // field records the row's kind; for to-dos it also records whether they are done.
+  function storedComment(text, source) {
+    if (source === "gemini") {
+      return "_Gemini: " + text;
+    }
+    if (source === "todo") {
+      return "_TODO: " + text;
+    }
+    if (source === "todo-done") {
+      return "_TODO[x]: " + text;
+    }
+    return text;
+  }
+
+  function parseComment(value) {
+    var todo = /^\s*_todo(\[x\])?:\s*/i.exec(value);
+    if (todo) {
+      return { kind: "todo", done: Boolean(todo[1]), text: value.slice(todo[0].length).trim() };
+    }
+    var gemini = /^\s*_?gemini:\s*/i.exec(value);
+    if (gemini) {
+      return { kind: "gemini", done: false, text: value.slice(gemini[0].length).trim() };
+    }
+    return { kind: "user", done: false, text: value.trim() };
+  }
+
+  // Keeps a to-do row's hidden state and strikethrough in step with its checkbox.
+  function syncTodoRow(row) {
+    var check = row.querySelector("[data-todo-check]");
+    if (!check) {
+      return;
+    }
+    var done = check.checked;
+    setField(row, "comment_source", done ? "todo-done" : "todo");
+    var text = row.querySelector("[data-todo-text]");
+    if (text) {
+      text.classList.toggle("text-decoration-line-through", done);
+      text.classList.toggle("text-body-secondary", done);
+    }
   }
 
   function makeRow(kind) {
@@ -352,6 +413,36 @@
       setField(row, "skill_category", stringValue(item.category));
       setField(row, "skill_items", textList(item.items));
     });
+
+    var container = document.querySelector('[data-rows="comment"]');
+    if (container) {
+      var comments = Array.isArray(data.comments) ? data.comments : [];
+      container.innerHTML = "";
+      if (!comments.length) {
+        comments = [""];
+      }
+      comments.forEach(function (comment) {
+        var parsed = parseComment(stringValue(comment));
+        var row = makeRow(parsed.kind === "todo" ? "comment-todo" : parsed.kind === "gemini" ? "comment-gemini" : "comment");
+        if (!row) {
+          return;
+        }
+        setField(row, "comment", parsed.text);
+        var label = row.querySelector("[data-comment-text]");
+        if (label) {
+          label.textContent = parsed.text;
+        }
+        if (parsed.kind === "todo") {
+          var check = row.querySelector("[data-todo-check]");
+          if (check) {
+            check.checked = parsed.done;
+          }
+          syncTodoRow(row);
+        }
+        container.appendChild(row);
+        showControls(row);
+      });
+    }
   }
 
   function validateItems(name, items, stringFields, listFields) {
@@ -395,7 +486,7 @@
     if (!data || typeof data !== "object" || Array.isArray(data)) {
       return "The JSON must be an object.";
     }
-    var allowed = ["fullname", "contact", "experience", "education", "keywords", "skills"];
+    var allowed = ["fullname", "contact", "experience", "education", "keywords", "skills", "comments"];
     var unknown = Object.keys(data).filter(function (key) {
       return allowed.indexOf(key) < 0;
     });
@@ -404,6 +495,16 @@
     }
     if ("fullname" in data && typeof data.fullname !== "string") {
       return "fullname must be a string.";
+    }
+    if ("comments" in data) {
+      if (!Array.isArray(data.comments)) {
+        return "comments must be an array.";
+      }
+      for (var c = 0; c < data.comments.length; c++) {
+        if (typeof data.comments[c] !== "string") {
+          return "comments must contain strings.";
+        }
+      }
     }
     if ("keywords" in data) {
       if (!Array.isArray(data.keywords)) {

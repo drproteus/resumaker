@@ -34,6 +34,28 @@ type skillForm struct {
 	Items    string
 }
 
+// commentForm is one comment. Kind is render.CommentUser, CommentGemini or
+// CommentTodo. Done only applies to to-dos.
+type commentForm struct {
+	Text string
+	Kind string
+	Done bool
+}
+
+// commentFromSource builds a comment from its row's text and hidden source value.
+func commentFromSource(text, source string) commentForm {
+	c := commentForm{Text: strings.TrimSpace(text), Kind: render.CommentUser}
+	switch source {
+	case "gemini":
+		c.Kind = render.CommentGemini
+	case "todo":
+		c.Kind = render.CommentTodo
+	case "todo-done":
+		c.Kind, c.Done = render.CommentTodo, true
+	}
+	return c
+}
+
 // resumeForm is the editor's model. Repeated sections are rendered as rows and
 // parsed back from repeated form fields, so no JavaScript is needed to submit.
 type resumeForm struct {
@@ -52,6 +74,12 @@ type resumeForm struct {
 	Education  []educationForm
 	Keywords   string
 	Skills     []skillForm
+	Comments   []commentForm
+
+	// AIAvailable controls whether the edit page offers the Gemini form.
+	AIAvailable bool
+	// Prompt preserves the user's instructions after a generation error.
+	Prompt string
 
 	Error string
 
@@ -60,6 +88,7 @@ type resumeForm struct {
 	EmptyExperience experienceForm
 	EmptyEducation  educationForm
 	EmptySkill      skillForm
+	EmptyComment    commentForm
 }
 
 func newResumeForm(action string) resumeForm {
@@ -121,6 +150,10 @@ func formFromData(data []byte) resumeForm {
 			Category: s.Category,
 			Items:    strings.Join(s.Items, ", "),
 		})
+	}
+	for _, c := range rd.Comments {
+		text, kind, done := render.ParseComment(c)
+		f.Comments = append(f.Comments, commentForm{Text: text, Kind: kind, Done: done})
 	}
 	return f
 }
@@ -194,6 +227,15 @@ func parseResumeForm(v url.Values) resumeForm {
 		f.Skills = append(f.Skills, s)
 	}
 
+	texts, sources := v["comment"], v["comment_source"]
+	for i := 0; i < maxLen(texts, sources); i++ {
+		text := strings.TrimSpace(at(texts, i))
+		if text == "" {
+			continue
+		}
+		f.Comments = append(f.Comments, commentFromSource(text, at(sources, i)))
+	}
+
 	return f
 }
 
@@ -218,6 +260,7 @@ func (f resumeForm) resumeData() render.ResumeData {
 		Education:  []render.ResumeDataEdu{},
 		Keywords:   splitList(f.Keywords),
 		Skills:     []render.ResumeDataSkillGroup{},
+		Comments:   []string{},
 	}
 	for _, c := range f.Contacts {
 		if c.Value == "" {
@@ -250,6 +293,11 @@ func (f resumeForm) resumeData() render.ResumeData {
 			Category: strings.TrimSpace(s.Category),
 			Items:    splitList(s.Items),
 		})
+	}
+	for _, c := range f.Comments {
+		if text := render.FormatComment(c.Text, c.Kind, c.Done); text != "" {
+			rd.Comments = append(rd.Comments, text)
+		}
 	}
 	return rd
 }

@@ -33,7 +33,30 @@
                             <li class="mb-1">Separate skills with commas; separate keyword tags with commas too.</li>
                             <li>Use <strong>Duplicate</strong> on the resumes list to make a variant without
                                 retyping it.</li>
+                            <li>Use <strong>Comments</strong> in the editor for private notes such as to-dos. They are
+                                never printed.</li>
                         </ul>
+
+                        {{if .AIAvailable}}
+                        <h3 class="h6">Tailoring with Gemini</h3>
+                        <ul class="mb-4">
+                            <li class="mb-1">On a resume's edit page, open <strong>Tailor with Gemini</strong> and paste
+                                a job description, a link to a posting, the skills to highlight, or any other
+                                instructions.</li>
+                            <li class="mb-1">Gemini writes a new resume in the background. Your original is never
+                                changed. The progress page opens the new resume when it is ready, and you can find it
+                                later on the resumes list.</li>
+                            <li class="mb-1">If the instructions name a role or company, the new resume is named after
+                                them.</li>
+                            <li class="mb-1">Gemini explains its changes in the <strong>Comments</strong> section as
+                                read-only notes marked with the Gemini icon. Delete them once you have reviewed them.</li>
+                            <li class="mb-1">Gemini's recommendations and action items appear as to-dos with a
+                                checkbox. Tick them off as you finish them.</li>
+                            <li class="mb-1">Job links are read by Gemini, not fetched by this server.</li>
+                            <li>Gemini can make mistakes. Check the new resume against your own experience before you
+                                send it.</li>
+                        </ul>
+                        {{end}}
 
                         <h3 class="h6">Printing</h3>
                         <p class="mb-0 text-body-secondary">The preview is a self-contained HTML page. Page size is
@@ -67,6 +90,11 @@
                         <p class="mb-2">Resume content is encrypted at rest with AES-256-GCM. Each account has its
                             own data key, wrapped by the server's master key; the plaintext only exists in memory
                             while a request needs it.</p>
+                        {{if .AIAvailable}}
+                        <p class="mb-2">Tailor with Gemini sends the resume and your instructions to Google's Gemini
+                            API to generate the new version. Google's handling of that data is covered by its own
+                            terms.</p>
+                        {{end}}
                         <p class="mb-0 text-body-secondary">Sign-in is handled by GitHub or Google OAuth. Accounts
                             are keyed by the provider's user ID, never linked by email address, so your resume is
                             only visible to the identity that created it.</p>

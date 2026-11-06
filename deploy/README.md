@@ -43,6 +43,7 @@ Fill in:
   `openssl rand -hex 24`.
 - `resumaker_letsencrypt_email`.
 - At least one OAuth pair: GitHub or Google.
+- Optionally `resumaker_gemini_api_key` to enable **Tailor with Gemini**.
 
 Register the OAuth callback URLs with the providers:
 

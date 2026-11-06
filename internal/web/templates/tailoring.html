@@ -1,0 +1,38 @@
+{{define "content"}}
+{{with .Data}}
+<div class="row justify-content-center">
+    <div class="col-lg-7">
+        {{if eq .Status "failed"}}
+        <div class="card shadow-sm">
+            <div class="card-body p-4">
+                <h1 class="h4">Gemini could not tailor the resume</h1>
+                <div class="alert alert-danger mt-3" role="alert">{{.Error}}</div>
+                <a class="btn btn-outline-primary" href="/resumes">Back to resumes</a>
+            </div>
+        </div>
+        {{else}}
+        <div class="card shadow-sm" data-tailoring data-status-url="/tailoring/{{.ID}}/status">
+            <div class="card-body p-4">
+                <div class="d-flex align-items-center gap-3 mb-3">
+                    <div class="spinner-border text-primary" role="status" aria-hidden="true"></div>
+                    <h1 class="h4 mb-0">Tailoring your resume</h1>
+                </div>
+                <p class="text-body-secondary mb-2">Gemini is reading your instructions and writing a new version.
+                    This usually takes under a minute.</p>
+                <p class="text-body-secondary mb-3">You can leave this page open; it opens the new resume when it is ready.</p>
+                <div class="alert alert-danger d-none" role="alert" data-tailoring-error></div>
+                <div class="d-flex flex-wrap gap-2">
+                    <button class="btn btn-outline-secondary btn-sm" type="button" onclick="location.reload()">Check again</button>
+                    <a class="btn btn-link btn-sm text-decoration-none" href="/resumes">Back to resumes</a>
+                </div>
+            </div>
+        </div>
+        {{end}}
+    </div>
+</div>
+{{end}}
+{{end}}
+
+{{define "scripts"}}
+<script src="/static/tailoring.js" defer></script>
+{{end}}

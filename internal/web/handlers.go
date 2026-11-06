@@ -1,6 +1,7 @@
 package web
 
 import (
+	"encoding/json"
 	"errors"
 	"net/http"
 
@@ -25,13 +26,17 @@ func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
 
 // helpView is the data shown on the help and about page.
 type helpView struct {
-	Templates []app.Template
+	Templates   []app.Template
+	AIAvailable bool
 }
 
 func (s *Server) handleAbout(w http.ResponseWriter, r *http.Request) {
-	p := page{Title: "Help & about", Data: helpView{Templates: app.Templates()}}
+	view := helpView{Templates: app.Templates()}
+	p := page{Title: "Help & about", Data: view}
 	if user, ok := s.currentUser(r); ok {
 		p.User = &user
+		view.AIAvailable = s.app.AIAvailableFor(r.Context(), user)
+		p.Data = view
 	}
 	s.render(w, http.StatusOK, "about.html", p)
 }
@@ -110,17 +115,27 @@ func (s *Server) handleResumeEdit(w http.ResponseWriter, r *http.Request, user s
 	if !ok {
 		return
 	}
-	detail, err := s.app.GetResume(r.Context(), user, id)
+	form, err := s.editForm(r, user, id)
 	if err != nil {
 		s.resumeError(w, r, err)
 		return
 	}
+	s.render(w, http.StatusOK, "resume_form.html", page{Title: "Edit resume", User: &user, Data: form})
+}
 
+// editForm loads a stored resume into the editor model, including the optional
+// Gemini controls.
+func (s *Server) editForm(r *http.Request, user store.User, id uuid.UUID) (resumeForm, error) {
+	detail, err := s.app.GetResume(r.Context(), user, id)
+	if err != nil {
+		return resumeForm{}, err
+	}
 	form := formFromData(detail.Data).withEditor("/resumes/" + id.String())
 	form.ID = id.String()
 	form.Name = detail.Name
 	form.TemplateID = detail.TemplateID
-	s.render(w, http.StatusOK, "resume_form.html", page{Title: "Edit resume", User: &user, Data: form})
+	form.AIAvailable = s.app.AIAvailableFor(r.Context(), user)
+	return form, nil
 }
 
 func (s *Server) handleResumeUpdate(w http.ResponseWriter, r *http.Request, user store.User) {
@@ -141,6 +156,7 @@ func (s *Server) handleResumeUpdate(w http.ResponseWriter, r *http.Request, user
 		var inputErr *app.InputError
 		if errors.As(err, &inputErr) {
 			form.ID = id.String()
+			form.AIAvailable = s.app.AIAvailableFor(r.Context(), user)
 			form.Error = inputErr.Msg
 			s.render(w, http.StatusUnprocessableEntity, "resume_form.html", page{Title: "Edit resume", User: &user, Data: form})
 			return
@@ -162,6 +178,87 @@ func (s *Server) handleResumeDuplicate(w http.ResponseWriter, r *http.Request, u
 		return
 	}
 	http.Redirect(w, r, "/resumes/"+newID.String(), http.StatusSeeOther)
+}
+
+// handleResumeTailor starts an AI-generated version of a resume in the
+// background and sends the browser to its progress page. The original stays
+// untouched, so the user can compare the two.
+func (s *Server) handleResumeTailor(w http.ResponseWriter, r *http.Request, user store.User) {
+	id, ok := parseID(w, r)
+	if !ok {
+		return
+	}
+	r.Body = http.MaxBytesReader(w, r.Body, maxFormBytes)
+	if err := r.ParseForm(); err != nil {
+		http.Error(w, "Request is too large or malformed.", http.StatusBadRequest)
+		return
+	}
+	prompt := r.PostFormValue("prompt")
+
+	jobID, err := s.app.StartTailor(r.Context(), user, id, prompt)
+	if err != nil {
+		var inputErr *app.InputError
+		if errors.As(err, &inputErr) {
+			s.renderTailorError(w, r, user, id, prompt, inputErr.Msg, http.StatusUnprocessableEntity)
+			return
+		}
+		s.resumeError(w, r, err)
+		return
+	}
+	http.Redirect(w, r, "/tailoring/"+jobID, http.StatusSeeOther)
+}
+
+// handleTailoring shows a generation in progress. Once it finishes, the browser
+// is sent to the new resume. Without JavaScript, the page reloads itself.
+func (s *Server) handleTailoring(w http.ResponseWriter, r *http.Request, user store.User) {
+	job, err := s.app.Tailoring(user, r.PathValue("job"))
+	if err != nil {
+		http.NotFound(w, r)
+		return
+	}
+	switch job.Status {
+	case app.TailoringDone:
+		http.Redirect(w, r, "/resumes/"+job.ResumeID.String(), http.StatusSeeOther)
+		return
+	case app.TailoringFailed:
+		s.render(w, http.StatusOK, "tailoring.html", page{Title: "Tailoring failed", User: &user, Data: job})
+		return
+	}
+	s.render(w, http.StatusOK, "tailoring.html", page{Title: "Tailoring resume", User: &user, Data: job})
+}
+
+// handleTailoringStatus reports a job's state as JSON for the progress page.
+func (s *Server) handleTailoringStatus(w http.ResponseWriter, r *http.Request, user store.User) {
+	job, err := s.app.Tailoring(user, r.PathValue("job"))
+	if err != nil {
+		http.NotFound(w, r)
+		return
+	}
+	status := tailoringStatus{Status: string(job.Status), Error: job.Error}
+	if job.Status == app.TailoringDone {
+		status.URL = "/resumes/" + job.ResumeID.String()
+	}
+	h := w.Header()
+	h.Set("Content-Type", "application/json")
+	h.Set("Cache-Control", "no-store")
+	json.NewEncoder(w).Encode(status)
+}
+
+type tailoringStatus struct {
+	Status string `json:"status"`
+	URL    string `json:"url,omitempty"`
+	Error  string `json:"error,omitempty"`
+}
+
+func (s *Server) renderTailorError(w http.ResponseWriter, r *http.Request, user store.User, id uuid.UUID, prompt, message string, status int) {
+	form, err := s.editForm(r, user, id)
+	if err != nil {
+		s.resumeError(w, r, err)
+		return
+	}
+	form.Prompt = prompt
+	form.Error = message
+	s.render(w, status, "resume_form.html", page{Title: "Edit resume", User: &user, Data: form})
 }
 
 func (s *Server) handleResumeDelete(w http.ResponseWriter, r *http.Request, user store.User) {

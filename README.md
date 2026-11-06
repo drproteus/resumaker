@@ -50,6 +50,22 @@ instead. Drag the handle beside a row to reorder contact details, experience,
 education or skill groups, and use Duplicate on the resume list to start from an
 existing version.
 
+## Tailoring with Gemini
+If `GEMINI_API_KEY` is set, the resume editor offers **Tailor with Gemini**. Paste a
+job description, one or more job posting links, skills to highlight, or any other
+instructions, and Gemini creates a new resume instead of changing the original. The
+generation runs in the background, so the browser stays responsive while it works. The
+new resume is named after the role and company when the instructions give them. Gemini
+explains its changes in the resume's `"comments"` array, each starting with `_Gemini:`.
+The editor shows those notes with a Gemini icon instead of the prefix.
+Users' own comments (to-dos, reminders) live in the same array and are never printed.
+Job links are passed to Gemini through its URL context tool, so the server does not
+fetch user-supplied URLs.
+
+`GEMINI_MODEL` defaults to `gemini-flash-latest`; set `GEMINI_API_BASE_URL` only when
+using a compatible proxy or a different API host. Resume JSON is sent to Google when
+you use this feature; leave `GEMINI_API_KEY` unset to keep it entirely local.
+
 Five styles ship with the app: Classic, Modern, Sidebar, Comic (a Comic Sans homage)
 and Dingbats (Wingdings-adjacent). The Help page explains the editor, printing and
 privacy. To render a style from the command line, pass its template and stylesheet:
@@ -66,6 +82,7 @@ $ docker compose up -d db
 $ export RESUMAKER_DATABASE_URL='postgres://resumaker:resumaker@localhost:5432/resumaker?sslmode=disable'
 $ export RESUMAKER_MASTER_KEY="$(openssl rand -base64 32)"   # keep this safe; losing it makes stored resumes unreadable
 $ export GITHUB_CLIENT_ID=... GITHUB_CLIENT_SECRET=...      # and/or GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET
+$ export GEMINI_API_KEY=...                                  # optional: enables Tailor with Gemini
 $ go run ./cmd/web
 ```
 

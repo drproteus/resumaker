@@ -25,3 +25,6 @@ resumaker_github_client_id: ""
 resumaker_github_client_secret: ""
 resumaker_google_client_id: ""
 resumaker_google_client_secret: ""
+
+# Optional: enables "Tailor with Gemini". Leave empty to disable the feature.
+resumaker_gemini_api_key: ""

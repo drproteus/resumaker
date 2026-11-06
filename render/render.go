@@ -44,9 +44,66 @@ type ResumeData struct {
 	Education  []ResumeDataEdu        `json:"education"`
 	Keywords   []string               `json:"keywords"`
 	Skills     []ResumeDataSkillGroup `json:"skills"`
-	Style      template.CSS           `json:"-"`
+	// Comments are private notes. They are kept with the resume but never printed.
+	Comments []string     `json:"comments"`
+	Style    template.CSS `json:"-"`
 	// Toolbar adds a print button and instructions, used by the web preview.
 	Toolbar bool `json:"-"`
+}
+
+// Comment kinds. Comments are stored as plain strings; the kind is encoded in a
+// prefix so the JSON stays simple.
+const (
+	CommentUser   = "user"
+	CommentGemini = "gemini"
+	CommentTodo   = "todo"
+)
+
+const (
+	GeminiCommentPrefix = "_Gemini:"
+	TodoCommentPrefix   = "_TODO:"
+	TodoDonePrefix      = "_TODO[x]:"
+)
+
+// ParseComment splits a stored comment into its text, kind and, for to-dos,
+// whether it is done. The bare "Gemini:" label is also accepted, since the model
+// sometimes writes it without the underscore.
+func ParseComment(comment string) (text, kind string, done bool) {
+	comment = strings.TrimSpace(comment)
+	prefixes := []struct {
+		prefix string
+		kind   string
+		done   bool
+	}{
+		{TodoDonePrefix, CommentTodo, true},
+		{TodoCommentPrefix, CommentTodo, false},
+		{GeminiCommentPrefix, CommentGemini, false},
+		{GeminiCommentPrefix[1:], CommentGemini, false},
+	}
+	for _, p := range prefixes {
+		if len(comment) >= len(p.prefix) && strings.EqualFold(comment[:len(p.prefix)], p.prefix) {
+			return strings.TrimSpace(comment[len(p.prefix):]), p.kind, p.done
+		}
+	}
+	return comment, CommentUser, false
+}
+
+// FormatComment is the inverse of ParseComment. Blank text returns "".
+func FormatComment(text, kind string, done bool) string {
+	text = strings.TrimSpace(text)
+	if text == "" {
+		return ""
+	}
+	switch {
+	case kind == CommentGemini:
+		return GeminiCommentPrefix + " " + text
+	case kind == CommentTodo && done:
+		return TodoDonePrefix + " " + text
+	case kind == CommentTodo:
+		return TodoCommentPrefix + " " + text
+	default:
+		return text
+	}
 }
 
 // Options describes a single render. Data, Template and Style are the only

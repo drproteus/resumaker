@@ -27,6 +27,7 @@ func TestNewResumeFormRenders(t *testing.T) {
 	for _, want := range []string{
 		`name="fullname"`,
 		`name="exp_highlights"`,
+		`data-add="comment"`,
 		`data-add="contact"`,
 		`data-drag-handle`,
 		`data-template="experience"`,
@@ -242,6 +243,171 @@ func TestReadResumeFormFormViewBuildsJSONPreview(t *testing.T) {
 	}
 	if !strings.Contains(form.Data, `"contact": [`) {
 		t.Errorf("form JSON preview missing contact: %q", form.Data)
+	}
+}
+
+func TestResumeFormRoundTripsComments(t *testing.T) {
+	data := []byte(`{"fullname": "Jane Example", "comments": ["TODO: call recruiter", "_Gemini: Led with Go."]}`)
+	form := formFromData(data).withEditor("/resumes/x")
+	if len(form.Comments) != 2 || form.Comments[0].Text != "TODO: call recruiter" || form.Comments[0].Kind != "user" {
+		t.Fatalf("comments not loaded: %+v", form.Comments)
+	}
+	if form.Comments[1].Kind != "gemini" || form.Comments[1].Text != "Led with Go." {
+		t.Fatalf("Gemini prefix not split off: %+v", form.Comments[1])
+	}
+
+	in, err := form.input()
+	if err != nil {
+		t.Fatal(err)
+	}
+	var roundTripped render.ResumeData
+	if err := json.Unmarshal(in.Data, &roundTripped); err != nil {
+		t.Fatal(err)
+	}
+	if strings.Join(roundTripped.Comments, "|") != "TODO: call recruiter|_Gemini: Led with Go." {
+		t.Errorf("comments lost: %+v", roundTripped.Comments)
+	}
+}
+
+func TestParseResumeFormKeepsCommentSources(t *testing.T) {
+	form := parseResumeForm(url.Values{
+		"name":           {"Backend"},
+		"template":       {"default"},
+		"comment":        {"Mine", "", "Gemini's"},
+		"comment_source": {"user", "user", "gemini"},
+	})
+	in, err := form.input()
+	if err != nil {
+		t.Fatal(err)
+	}
+	var rd render.ResumeData
+	if err := json.Unmarshal(in.Data, &rd); err != nil {
+		t.Fatal(err)
+	}
+	if strings.Join(rd.Comments, "|") != "Mine|_Gemini: Gemini's" {
+		t.Errorf("comments = %q", rd.Comments)
+	}
+}
+
+func TestParseResumeFormDropsEmptyComments(t *testing.T) {
+	form := parseResumeForm(url.Values{
+		"name":     {"Backend"},
+		"template": {"default"},
+		"comment":  {"  Ask about the team  ", "", "   "},
+	})
+	in, err := form.input()
+	if err != nil {
+		t.Fatal(err)
+	}
+	var rd render.ResumeData
+	if err := json.Unmarshal(in.Data, &rd); err != nil {
+		t.Fatal(err)
+	}
+	if len(rd.Comments) != 1 || rd.Comments[0] != "Ask about the team" {
+		t.Errorf("comments = %q", rd.Comments)
+	}
+}
+
+func TestTodoCommentsRoundTripWithState(t *testing.T) {
+	form := formFromData([]byte(`{"fullname": "Jane", "comments": ["_TODO: Add metrics", "_TODO[x]: Check dates"]}`)).withEditor("/resumes/x")
+	if len(form.Comments) != 2 || form.Comments[0].Kind != "todo" || form.Comments[0].Done || !form.Comments[1].Done {
+		t.Fatalf("todos not loaded: %+v", form.Comments)
+	}
+
+	srv, err := New(Options{}, nil, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var buf bytes.Buffer
+	if err := srv.pages["resume_form.html"].ExecuteTemplate(&buf, "layout", page{Title: "Edit resume", Data: form}); err != nil {
+		t.Fatal(err)
+	}
+	body := buf.String()
+	for _, want := range []string{
+		`<input type="hidden" name="comment_source" value="todo-done">`,
+		`<input class="form-check-input flex-shrink-0 mt-1" type="checkbox" aria-label="Done" data-todo-check checked>`,
+		`text-decoration-line-through`,
+	} {
+		if !strings.Contains(body, want) {
+			t.Errorf("todo row missing %q", want)
+		}
+	}
+
+	values := url.Values{
+		"name":           {"Backend"},
+		"template":       {"default"},
+		"comment":        {"Add metrics", "Check dates"},
+		"comment_source": {"todo", "todo-done"},
+	}
+	in, err := parseResumeForm(values).input()
+	if err != nil {
+		t.Fatal(err)
+	}
+	var rd render.ResumeData
+	if err := json.Unmarshal(in.Data, &rd); err != nil {
+		t.Fatal(err)
+	}
+	if strings.Join(rd.Comments, "|") != "_TODO: Add metrics|_TODO[x]: Check dates" {
+		t.Errorf("comments = %q", rd.Comments)
+	}
+}
+
+func TestEditFormShowsComments(t *testing.T) {
+	srv, err := New(Options{}, nil, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	form := formFromData([]byte(`{"fullname": "Jane Example", "comments": ["_Gemini: Led with Go."]}`)).withEditor("/resumes/abc")
+	form.ID = "abc"
+	form.Name = "Backend"
+	form.AIAvailable = true
+
+	var buf bytes.Buffer
+	p := page{Title: "Edit resume", Data: form}
+	if err := srv.pages["resume_form.html"].ExecuteTemplate(&buf, "layout", p); err != nil {
+		t.Fatal(err)
+	}
+
+	body := buf.String()
+	for _, want := range []string{
+		`action="/resumes/abc/tailor"`,
+		`name="prompt"`,
+		`Tailor with Gemini`,
+		`name="comment"`,
+		`alert alert-secondary`,
+		`data-comment-text>Led with Go.</span>`,
+		`<input type="hidden" name="comment" value="Led with Go.">`,
+		`href="#section-contact"`,
+		`id="section-contact"`,
+		`href="#section-tailor"`,
+		`href="#section-print"`,
+		`/static/toc.js`,
+		`id="section-print"`,
+		`id="section-tailor"`,
+	} {
+		if !strings.Contains(body, want) {
+			t.Errorf("edit page missing %q", want)
+		}
+	}
+}
+
+func TestEditFormHidesGeminiTailorFormWhenDisabled(t *testing.T) {
+	srv, err := New(Options{}, nil, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	form := formFromData([]byte(`{"fullname": "Jane Example"}`)).withEditor("/resumes/abc")
+	form.ID = "abc"
+
+	var buf bytes.Buffer
+	p := page{Title: "Edit resume", Data: form}
+	if err := srv.pages["resume_form.html"].ExecuteTemplate(&buf, "layout", p); err != nil {
+		t.Fatal(err)
+	}
+	if strings.Contains(buf.String(), `action="/resumes/abc/tailor"`) {
+		t.Error("tailor form shown without a configured generator")
 	}
 }
 

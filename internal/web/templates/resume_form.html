@@ -1,8 +1,11 @@
 {{define "content"}}
 {{with .Data}}
 {{$form := .}}
-<div class="row justify-content-center">
-    <div class="col-xl-10">
+<div class="resume-layout">
+<aside class="resume-toc">
+    <nav aria-label="Resume sections">{{template "toc_links" .}}</nav>
+</aside>
+<div class="resume-page">
         <div class="d-flex justify-content-between align-items-center mb-3">
             <h1 class="h3 mb-0">{{if .ID}}Edit resume{{else}}New resume{{end}}</h1>
             <a class="btn btn-link text-decoration-none" href="/resumes">Back to resumes</a>
@@ -15,7 +18,7 @@
         <form class="resume-editor editor-view-{{$form.View}}" method="post" action="{{.Action}}">
             <div class="card shadow-sm mb-3">
                 <div class="card-body p-4">
-                    <h2 class="h5 mb-3">Basics</h2>
+                    <h2 id="section-basics" class="h5 mb-3">Basics</h2>
                     <div class="row g-3">
                         <div class="col-md-8">
                             <label class="form-label" for="name">Name</label>
@@ -49,7 +52,7 @@
             <div class="editor-panel" data-editor-panel="form">
                 <div class="card shadow-sm mb-3">
                     <div class="card-body p-4">
-                        <h2 class="h5 mb-3">Details</h2>
+                        <h2 id="section-details" class="h5 mb-3">Details</h2>
                         <div class="row g-3">
                             <div class="col-md-6">
                                 <label class="form-label" for="fullname">Full name</label>
@@ -66,7 +69,7 @@
 
                 <div class="card shadow-sm mb-3">
                     <div class="card-header bg-body d-flex justify-content-between align-items-center">
-                        <h2 class="h5 mb-0">Contact</h2>
+                        <h2 id="section-contact" class="h5 mb-0">Contact</h2>
                         <button class="btn btn-sm btn-outline-primary" type="button" data-add="contact" hidden>Add contact</button>
                     </div>
                     <div class="card-body" data-rows="contact">
@@ -76,7 +79,7 @@
 
                 <div class="card shadow-sm mb-3">
                     <div class="card-header bg-body d-flex justify-content-between align-items-center">
-                        <h2 class="h5 mb-0">Experience</h2>
+                        <h2 id="section-experience" class="h5 mb-0">Experience</h2>
                         <button class="btn btn-sm btn-outline-primary" type="button" data-add="experience" hidden>Add experience</button>
                     </div>
                     <div class="card-body" data-rows="experience">
@@ -86,7 +89,7 @@
 
                 <div class="card shadow-sm mb-3">
                     <div class="card-header bg-body d-flex justify-content-between align-items-center">
-                        <h2 class="h5 mb-0">Education</h2>
+                        <h2 id="section-education" class="h5 mb-0">Education</h2>
                         <button class="btn btn-sm btn-outline-primary" type="button" data-add="education" hidden>Add education</button>
                     </div>
                     <div class="card-body" data-rows="education">
@@ -96,12 +99,23 @@
 
                 <div class="card shadow-sm mb-3">
                     <div class="card-header bg-body d-flex justify-content-between align-items-center">
-                        <h2 class="h5 mb-0">Skills</h2>
+                        <h2 id="section-skills" class="h5 mb-0">Skills</h2>
                         <button class="btn btn-sm btn-outline-primary" type="button" data-add="skill" hidden>Add skill group</button>
                     </div>
                     <div class="card-body" data-rows="skill">
                         {{range .Skills}}{{template "skill_row" .}}{{else}}{{template "skill_row" $form.EmptySkill}}{{end}}
                     </div>
+                </div>
+
+                <div class="card shadow-sm mb-3">
+                    <div class="card-header bg-body d-flex justify-content-between align-items-center">
+                        <h2 id="section-comments" class="h5 mb-0">Comments</h2>
+                        <button class="btn btn-sm btn-outline-primary" type="button" data-add="comment" hidden>Add comment</button>
+                    </div>
+                    <div class="card-body" data-rows="comment">
+                        {{range .Comments}}{{if eq .Kind "gemini"}}{{template "comment_gemini_row" .}}{{else if eq .Kind "todo"}}{{template "comment_todo_row" .}}{{else}}{{template "comment_row" .}}{{end}}{{else}}{{template "comment_row" $form.EmptyComment}}{{end}}
+                    </div>
+                    <div class="card-footer bg-body small text-body-secondary">Private notes such as reminders. They are never printed. Notes and to-dos from Gemini are read-only; tick off to-dos as you finish them and delete anything you no longer need.</div>
                 </div>
             </div>
 
@@ -121,11 +135,31 @@
             </div>
         </form>
 
+        {{if .ID}}{{if .AIAvailable}}
+        <div class="card shadow-sm mb-3 border-primary-subtle">
+            <div class="card-body p-4">
+                <h2 id="section-tailor" class="h5 mb-2">Tailor with Gemini</h2>
+                <p class="text-body-secondary">Paste a job description, one or more links, skills to highlight, or
+                    any other instructions. Gemini will create a new AI-assisted version of this resume; the original
+                    stays exactly as it is.</p>
+                <form method="post" action="/resumes/{{.ID}}/tailor">
+                    <label class="form-label" for="prompt">Job description or instructions</label>
+                    <textarea class="form-control mb-2" id="prompt" name="prompt" rows="6" required
+                        placeholder="Paste the job description or a link to it, then add anything you want emphasised.">{{.Prompt}}</textarea>
+                    <div class="d-flex align-items-center gap-2">
+                        <button class="btn btn-primary" type="submit">Create AI version</button>
+                        <span class="form-text m-0">Gemini works in the background, and job links are read by Gemini, not this server.</span>
+                    </div>
+                </form>
+            </div>
+        </div>
+        {{end}}{{end}}
+
         {{if .ID}}
         <div class="card shadow-sm mt-4">
             <div class="card-body d-flex flex-wrap justify-content-between align-items-center gap-3">
                 <span class="text-body-secondary">Preview the saved version, then use Print (Ctrl/Cmd+P) to save it as PDF.</span>
-                <a class="btn btn-outline-primary" href="/resumes/{{.ID}}/preview" target="_blank" rel="noopener">Preview &amp; print</a>
+                <a id="section-print" class="btn btn-outline-primary" href="/resumes/{{.ID}}/preview" target="_blank" rel="noopener">Preview &amp; print</a>
             </div>
         </div>
 
@@ -143,7 +177,10 @@
         <template data-template="experience">{{template "experience_row" .EmptyExperience}}</template>
         <template data-template="education">{{template "education_row" .EmptyEducation}}</template>
         <template data-template="skill">{{template "skill_row" .EmptySkill}}</template>
-    </div>
+        <template data-template="comment">{{template "comment_row" .EmptyComment}}</template>
+        <template data-template="comment-gemini">{{template "comment_gemini_row" .EmptyComment}}</template>
+        <template data-template="comment-todo">{{template "comment_todo_row" .EmptyComment}}</template>
+</div>
 </div>
 {{end}}
 {{end}}
@@ -228,6 +265,54 @@
 </div>
 {{end}}
 
+{{define "toc_links"}}
+<ul class="nav flex-column small">
+    <li class="nav-item"><a class="nav-link py-1 px-2" href="#section-basics">Basics</a></li>
+    <li class="nav-item"><a class="nav-link py-1 px-2" href="#section-details">Details</a></li>
+    <li class="nav-item"><a class="nav-link py-1 px-2" href="#section-contact">Contact</a></li>
+    <li class="nav-item"><a class="nav-link py-1 px-2" href="#section-experience">Experience</a></li>
+    <li class="nav-item"><a class="nav-link py-1 px-2" href="#section-education">Education</a></li>
+    <li class="nav-item"><a class="nav-link py-1 px-2" href="#section-skills">Skills</a></li>
+    <li class="nav-item"><a class="nav-link py-1 px-2" href="#section-comments">Comments</a></li>
+    {{if and .ID .AIAvailable}}<li class="nav-item"><a class="nav-link py-1 px-2" href="#section-tailor">Tailor with Gemini</a></li>{{end}}
+    {{if .ID}}<li class="nav-item"><a class="nav-link py-1 px-2" href="#section-print">Print</a></li>{{end}}
+</ul>
+{{end}}
+
+{{define "comment_row"}}
+<div class="row g-2 align-items-center mb-2" data-row>
+    <input type="hidden" name="comment_source" value="user">
+    <div class="col">
+        <input class="form-control" name="comment" value="{{.Text}}" aria-label="Comment" placeholder="For example, follow up with the recruiter Friday">
+    </div>
+    <div class="col-auto">
+        <button class="btn-close" type="button" data-remove aria-label="Delete comment" title="Delete comment" hidden></button>
+    </div>
+</div>
+{{end}}
+
+{{define "comment_todo_row"}}
+<div class="alert alert-secondary d-flex align-items-start gap-2 py-2 px-3 small mb-2" role="note" data-row>
+    <input type="hidden" name="comment_source" value="{{if .Done}}todo-done{{else}}todo{{end}}">
+    <input type="hidden" name="comment" value="{{.Text}}">
+    <input class="form-check-input flex-shrink-0 mt-1" type="checkbox" aria-label="Done" data-todo-check{{if .Done}} checked{{end}}>
+    <span class="flex-grow-1{{if .Done}} text-decoration-line-through text-body-secondary{{end}}" data-comment-text data-todo-text>{{.Text}}</span>
+    <button class="btn-close flex-shrink-0 mt-1" type="button" data-remove aria-label="Delete to-do" title="Delete to-do" hidden></button>
+</div>
+{{end}}
+
+{{define "comment_gemini_row"}}
+<div class="alert alert-secondary d-flex align-items-start gap-2 py-2 px-3 small mb-2" role="note" data-row>
+    <input type="hidden" name="comment_source" value="gemini">
+    <input type="hidden" name="comment" value="{{.Text}}">
+    <svg class="flex-shrink-0 mt-1 text-primary" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" role="img" aria-label="Gemini">
+        <path d="M12 0C12 6.6 17.4 12 24 12C17.4 12 12 17.4 12 24C12 17.4 6.6 12 0 12C6.6 12 12 6.6 12 0Z"/>
+    </svg>
+    <span class="flex-grow-1" data-comment-text>{{.Text}}</span>
+    <button class="btn-close flex-shrink-0 mt-1" type="button" data-remove aria-label="Delete comment" title="Delete comment" hidden></button>
+</div>
+{{end}}
+
 {{define "skill_row"}}
 <div class="row g-2 align-items-start mb-2" data-row>
     <div class="col-auto">
@@ -249,4 +334,5 @@
 <link rel="stylesheet" href="/static/form.css">
 <script src="/static/form.js" defer></script>
 <script src="/static/delete.js" defer></script>
+<script src="/static/toc.js" defer></script>
 {{end}}
