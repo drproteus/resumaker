@@ -2,7 +2,8 @@
 
 This playbook deploys Resumaker to `resumaker.skinet.org` as:
 
-- a static Go binary at `/opt/resumaker/resumaker`
+- a static Go binary at `/opt/resumaker/resumaker`, plus the `admin` command at
+  `/opt/resumaker/admin` for managing per-user feature flags
 - a hardened `resumaker.service` systemd unit
 - a local PostgreSQL database
 - nginx terminating TLS with a Let's Encrypt certificate and proxying to

@@ -71,6 +71,26 @@
       become: false
       changed_when: true
 
+    - name: Build the admin binary for the target
+      ansible.builtin.command:
+        argv:
+          - go
+          - build
+          - -trimpath
+          - -ldflags
+          - -s -w
+          - -o
+          - "{{ resumaker_build_dir }}/admin"
+          - ./cmd/admin
+        chdir: "{{ playbook_dir }}/.."
+      environment:
+        GOOS: linux
+        GOARCH: "{{ resumaker_goarch }}"
+        CGO_ENABLED: "0"
+      delegate_to: localhost
+      become: false
+      changed_when: true
+
   handlers:
     - name: Validate nginx configuration
       ansible.builtin.command:
@@ -167,6 +187,14 @@
         group: root
         mode: "0755"
       notify: Restart resumaker
+
+    - name: Install the admin binary
+      ansible.builtin.copy:
+        src: "{{ resumaker_build_dir }}/admin"
+        dest: "{{ resumaker_install_dir }}/admin"
+        owner: root
+        group: root
+        mode: "0755"
 
     - name: Install the environment file
       ansible.builtin.template:
