@@ -31,10 +31,12 @@ type helpView struct {
 }
 
 func (s *Server) handleAbout(w http.ResponseWriter, r *http.Request) {
-	view := helpView{Templates: app.Templates(), AIAvailable: s.app.AIGenerationAvailable()}
+	view := helpView{Templates: app.Templates()}
 	p := page{Title: "Help & about", Data: view}
 	if user, ok := s.currentUser(r); ok {
 		p.User = &user
+		view.AIAvailable = s.app.AIAvailableFor(r.Context(), user)
+		p.Data = view
 	}
 	s.render(w, http.StatusOK, "about.html", p)
 }
@@ -132,7 +134,7 @@ func (s *Server) editForm(r *http.Request, user store.User, id uuid.UUID) (resum
 	form.ID = id.String()
 	form.Name = detail.Name
 	form.TemplateID = detail.TemplateID
-	form.AIAvailable = s.app.AIGenerationAvailable()
+	form.AIAvailable = s.app.AIAvailableFor(r.Context(), user)
 	return form, nil
 }
 
@@ -154,7 +156,7 @@ func (s *Server) handleResumeUpdate(w http.ResponseWriter, r *http.Request, user
 		var inputErr *app.InputError
 		if errors.As(err, &inputErr) {
 			form.ID = id.String()
-			form.AIAvailable = s.app.AIGenerationAvailable()
+			form.AIAvailable = s.app.AIAvailableFor(r.Context(), user)
 			form.Error = inputErr.Msg
 			s.render(w, http.StatusUnprocessableEntity, "resume_form.html", page{Title: "Edit resume", User: &user, Data: form})
 			return

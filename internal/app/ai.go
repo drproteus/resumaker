@@ -35,12 +35,6 @@ type ResumeGenerator interface {
 	TailorResume(ctx context.Context, resumeJSON []byte, prompt string) (gemini.Result, error)
 }
 
-// AIGenerationAvailable reports whether a generator is configured, so the UI
-// can hide the feature rather than offering a form that always fails.
-func (s *Service) AIGenerationAvailable() bool {
-	return s != nil && s.generator != nil
-}
-
 type TailoringStatus string
 
 const (
@@ -130,6 +124,13 @@ func (s *Service) Tailoring(user store.User, jobID string) (Tailoring, error) {
 func (s *Service) StartTailor(ctx context.Context, user store.User, id uuid.UUID, prompt string) (string, error) {
 	if s.generator == nil {
 		return "", &InputError{Msg: "Gemini is not configured on this server."}
+	}
+	enabled, err := s.FeatureEnabled(ctx, user, FeatureGemini)
+	if err != nil {
+		return "", err
+	}
+	if !enabled {
+		return "", &InputError{Msg: "Tailor with Gemini is not enabled for your account."}
 	}
 	prompt = strings.TrimSpace(prompt)
 	if prompt == "" {

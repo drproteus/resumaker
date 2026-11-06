@@ -88,13 +88,15 @@ func TestAboutPageDescribesGeminiOnlyWhenConfigured(t *testing.T) {
 		t.Error("help page describes Gemini without a configured key")
 	}
 
+	// Gemini is per user, so signed-out visitors never see it, even when the
+	// server has a key. The signed-in case needs a database and is tested in the app package.
 	svc := app.New(nil, nil, app.WithGenerator(gemini.New(gemini.Options{APIKey: "test-key"})))
 	srv, err := New(Options{}, svc, []*auth.Provider{auth.NewGitHub("id", "secret", "http://localhost/cb")})
 	if err != nil {
 		t.Fatal(err)
 	}
-	if body := get(srv.Handler()); !strings.Contains(body, "Tailoring with Gemini") || !strings.Contains(body, "Google's Gemini") {
-		t.Error("help page does not describe Gemini when it is configured")
+	if body := get(srv.Handler()); strings.Contains(body, "Tailoring with Gemini") {
+		t.Error("help page describes Gemini to a signed-out visitor")
 	}
 }
 
