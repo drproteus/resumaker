@@ -33,6 +33,53 @@
   display: none;
 }
 
+/* The page content is a fixed-width column, centred. The section list sits in
+   the gutter to its left, which only exists on wide screens. Below that width
+   the list is hidden and the page is simply centred. */
+.resume-page {
+  max-width: 50rem;
+  margin: 0 auto;
+}
+
+.resume-toc {
+  display: none;
+}
+
+@media (min-width: 1280px) {
+  .resume-layout {
+    display: grid;
+    grid-template-columns: 1fr minmax(0, 50rem) 1fr;
+  }
+
+  .resume-layout > .resume-page {
+    grid-column: 2;
+  }
+
+  /* Sticky with top 0 keeps the list in place while the page scrolls. It starts
+     level with the navbar, scrolls up with the page, and stops flush with the
+     top of the viewport once the navbar has scrolled away. */
+  .resume-toc {
+    display: block;
+    grid-column: 1;
+    grid-row: 1;
+    justify-self: end;
+    align-self: start;
+    position: sticky;
+    top: 0;
+    width: 12rem;
+    max-height: 100vh;
+    margin-right: 1rem;
+    padding-top: 1rem;
+    overflow-y: auto;
+  }
+}
+
+/* In JSON view the sections are hidden, so the list goes too. */
+.resume-layout:has(.resume-editor.editor-view-json) .resume-toc,
+.resume-layout:has(#view-json:checked) .resume-toc {
+  display: none;
+}
+
 /* Resume editor drag handles. */
 .drag-handle {
   cursor: grab;

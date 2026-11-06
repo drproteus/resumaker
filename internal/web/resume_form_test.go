@@ -249,10 +249,10 @@ func TestReadResumeFormFormViewBuildsJSONPreview(t *testing.T) {
 func TestResumeFormRoundTripsComments(t *testing.T) {
 	data := []byte(`{"fullname": "Jane Example", "comments": ["TODO: call recruiter", "_Gemini: Led with Go."]}`)
 	form := formFromData(data).withEditor("/resumes/x")
-	if len(form.Comments) != 2 || form.Comments[0].Text != "TODO: call recruiter" || form.Comments[0].AI {
+	if len(form.Comments) != 2 || form.Comments[0].Text != "TODO: call recruiter" || form.Comments[0].Kind != "user" {
 		t.Fatalf("comments not loaded: %+v", form.Comments)
 	}
-	if !form.Comments[1].AI || form.Comments[1].Text != "Led with Go." {
+	if form.Comments[1].Kind != "gemini" || form.Comments[1].Text != "Led with Go." {
 		t.Fatalf("Gemini prefix not split off: %+v", form.Comments[1])
 	}
 
@@ -308,6 +308,50 @@ func TestParseResumeFormDropsEmptyComments(t *testing.T) {
 	}
 }
 
+func TestTodoCommentsRoundTripWithState(t *testing.T) {
+	form := formFromData([]byte(`{"fullname": "Jane", "comments": ["_TODO: Add metrics", "_TODO[x]: Check dates"]}`)).withEditor("/resumes/x")
+	if len(form.Comments) != 2 || form.Comments[0].Kind != "todo" || form.Comments[0].Done || !form.Comments[1].Done {
+		t.Fatalf("todos not loaded: %+v", form.Comments)
+	}
+
+	srv, err := New(Options{}, nil, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var buf bytes.Buffer
+	if err := srv.pages["resume_form.html"].ExecuteTemplate(&buf, "layout", page{Title: "Edit resume", Data: form}); err != nil {
+		t.Fatal(err)
+	}
+	body := buf.String()
+	for _, want := range []string{
+		`<input type="hidden" name="comment_source" value="todo-done">`,
+		`<input class="form-check-input flex-shrink-0 mt-1" type="checkbox" aria-label="Done" data-todo-check checked>`,
+		`text-decoration-line-through`,
+	} {
+		if !strings.Contains(body, want) {
+			t.Errorf("todo row missing %q", want)
+		}
+	}
+
+	values := url.Values{
+		"name":           {"Backend"},
+		"template":       {"default"},
+		"comment":        {"Add metrics", "Check dates"},
+		"comment_source": {"todo", "todo-done"},
+	}
+	in, err := parseResumeForm(values).input()
+	if err != nil {
+		t.Fatal(err)
+	}
+	var rd render.ResumeData
+	if err := json.Unmarshal(in.Data, &rd); err != nil {
+		t.Fatal(err)
+	}
+	if strings.Join(rd.Comments, "|") != "_TODO: Add metrics|_TODO[x]: Check dates" {
+		t.Errorf("comments = %q", rd.Comments)
+	}
+}
+
 func TestEditFormShowsComments(t *testing.T) {
 	srv, err := New(Options{}, nil, nil)
 	if err != nil {
@@ -333,6 +377,12 @@ func TestEditFormShowsComments(t *testing.T) {
 		`name="comment"`,
 		`alert alert-secondary`,
 		`<input type="hidden" name="comment" value="Led with Go.">`,
+		`href="#section-contact"`,
+		`id="section-contact"`,
+		`href="#section-tailor"`,
+		`href="#section-print"`,
+		`id="section-print"`,
+		`id="section-tailor"`,
 	} {
 		if !strings.Contains(body, want) {
 			t.Errorf("edit page missing %q", want)

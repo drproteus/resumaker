@@ -51,21 +51,59 @@ type ResumeData struct {
 	Toolbar bool `json:"-"`
 }
 
-// GeminiCommentPrefix marks comments written by Gemini, so they can be told apart
-// from the user's own notes.
-const GeminiCommentPrefix = "_Gemini:"
+// Comment kinds. Comments are stored as plain strings; the kind is encoded in a
+// prefix so the JSON stays simple.
+const (
+	CommentUser   = "user"
+	CommentGemini = "gemini"
+	CommentTodo   = "todo"
+)
 
-// SplitGeminiComment returns a comment's text without the Gemini prefix, and
-// whether the comment was written by Gemini. The bare "Gemini:" label is also
-// accepted, since the model sometimes writes it without the underscore.
-func SplitGeminiComment(comment string) (string, bool) {
+const (
+	GeminiCommentPrefix = "_Gemini:"
+	TodoCommentPrefix   = "_TODO:"
+	TodoDonePrefix      = "_TODO[x]:"
+)
+
+// ParseComment splits a stored comment into its text, kind and, for to-dos,
+// whether it is done. The bare "Gemini:" label is also accepted, since the model
+// sometimes writes it without the underscore.
+func ParseComment(comment string) (text, kind string, done bool) {
 	comment = strings.TrimSpace(comment)
-	for _, prefix := range []string{GeminiCommentPrefix, GeminiCommentPrefix[1:]} {
-		if len(comment) >= len(prefix) && strings.EqualFold(comment[:len(prefix)], prefix) {
-			return strings.TrimSpace(comment[len(prefix):]), true
+	prefixes := []struct {
+		prefix string
+		kind   string
+		done   bool
+	}{
+		{TodoDonePrefix, CommentTodo, true},
+		{TodoCommentPrefix, CommentTodo, false},
+		{GeminiCommentPrefix, CommentGemini, false},
+		{GeminiCommentPrefix[1:], CommentGemini, false},
+	}
+	for _, p := range prefixes {
+		if len(comment) >= len(p.prefix) && strings.EqualFold(comment[:len(p.prefix)], p.prefix) {
+			return strings.TrimSpace(comment[len(p.prefix):]), p.kind, p.done
 		}
 	}
-	return comment, false
+	return comment, CommentUser, false
+}
+
+// FormatComment is the inverse of ParseComment. Blank text returns "".
+func FormatComment(text, kind string, done bool) string {
+	text = strings.TrimSpace(text)
+	if text == "" {
+		return ""
+	}
+	switch {
+	case kind == CommentGemini:
+		return GeminiCommentPrefix + " " + text
+	case kind == CommentTodo && done:
+		return TodoDonePrefix + " " + text
+	case kind == CommentTodo:
+		return TodoCommentPrefix + " " + text
+	default:
+		return text
+	}
 }
 
 // Options describes a single render. Data, Template and Style are the only

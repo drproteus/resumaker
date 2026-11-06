@@ -21,7 +21,7 @@ func TestNormalizeAIResumeMergesComments(t *testing.T) {
 	out, err := normalizeAIResume([]byte(`{
 		"fullname": "Jane Example",
 		"comments": ["Moved Go first.", "Gemini: Added the Acme keyword.", "  ", "Jane's own note"]
-	}`), []string{"TODO: send the thank-you email"})
+	}`), []string{"TODO: send the thank-you email"}, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -53,7 +53,7 @@ func TestNormalizeAIResumeDropsEchoedUserComments(t *testing.T) {
 	out, err := normalizeAIResume([]byte(`{
 		"fullname": "Jane Example",
 		"comments": ["TODO: send the thank-you email", "Swapped the skills order."]
-	}`), []string{"TODO: send the thank-you email"})
+	}`), []string{"TODO: send the thank-you email"}, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -62,15 +62,40 @@ func TestNormalizeAIResumeDropsEchoedUserComments(t *testing.T) {
 	}
 }
 
+func TestNormalizeAIResumeAddsTodos(t *testing.T) {
+	out, err := normalizeAIResume([]byte(`{
+		"fullname": "Jane Example",
+		"comments": ["Moved Go first."]
+	}`), nil, []string{"Verify the Acme start date", "  ", "Verify the Acme start date", "_TODO: Prepare a Go example"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	text := string(out)
+	for _, want := range []string{
+		`"_TODO: Verify the Acme start date"`,
+		`"_TODO: Prepare a Go example"`,
+	} {
+		if !strings.Contains(text, want) {
+			t.Errorf("normalized JSON missing %q:\n%s", want, text)
+		}
+	}
+	if n := strings.Count(text, "Verify the Acme start date"); n != 1 {
+		t.Errorf("duplicate todo kept (%d times):\n%s", n, text)
+	}
+	if strings.Contains(text, "_TODO: _TODO:") {
+		t.Errorf("todo prefix was doubled:\n%s", text)
+	}
+}
+
 func TestNormalizeAIResumeRequiresGeminiNote(t *testing.T) {
-	_, err := normalizeAIResume([]byte(`{"fullname": "Jane", "comments": []}`), []string{"mine"})
+	_, err := normalizeAIResume([]byte(`{"fullname": "Jane", "comments": []}`), []string{"mine"}, nil)
 	if err == nil || !strings.Contains(err.Error(), "no comments") {
 		t.Fatalf("err = %v", err)
 	}
 }
 
 func TestNormalizeAIResumeRejectsUnknownFields(t *testing.T) {
-	_, err := normalizeAIResume([]byte(`{"fullname": "Jane", "comments": ["x"], "invented": true}`), nil)
+	_, err := normalizeAIResume([]byte(`{"fullname": "Jane", "comments": ["x"], "invented": true}`), nil, nil)
 	if err == nil || !strings.Contains(err.Error(), "unknown field") {
 		t.Fatalf("err = %v", err)
 	}
@@ -86,21 +111,6 @@ func TestGeneratedResumeName(t *testing.T) {
 	long := strings.Repeat("a", maxNameLength+20)
 	if got := generatedResumeName(long, "Backend"); len(got) != maxNameLength {
 		t.Errorf("long name length = %d, want %d", len(got), maxNameLength)
-	}
-}
-
-func TestGeminiNote(t *testing.T) {
-	tests := map[string]string{
-		"Swapped skills":         "_Gemini: Swapped skills",
-		"_gemini:Swapped skills": "_Gemini: Swapped skills",
-		"  _Gemini:   Swapped  ": "_Gemini: Swapped",
-		"   ":                    "",
-		"_Gemini:":               "",
-	}
-	for in, want := range tests {
-		if got := geminiNote(in); got != want {
-			t.Errorf("geminiNote(%q) = %q, want %q", in, got, want)
-		}
 	}
 }
 

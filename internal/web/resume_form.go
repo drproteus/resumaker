@@ -34,10 +34,26 @@ type skillForm struct {
 	Items    string
 }
 
+// commentForm is one comment. Kind is render.CommentUser, CommentGemini or
+// CommentTodo. Done only applies to to-dos.
 type commentForm struct {
 	Text string
-	// AI is true for notes written by Gemini. Their prefix is shown as an icon.
-	AI bool
+	Kind string
+	Done bool
+}
+
+// commentFromSource builds a comment from its row's text and hidden source value.
+func commentFromSource(text, source string) commentForm {
+	c := commentForm{Text: strings.TrimSpace(text), Kind: render.CommentUser}
+	switch source {
+	case "gemini":
+		c.Kind = render.CommentGemini
+	case "todo":
+		c.Kind = render.CommentTodo
+	case "todo-done":
+		c.Kind, c.Done = render.CommentTodo, true
+	}
+	return c
 }
 
 // resumeForm is the editor's model. Repeated sections are rendered as rows and
@@ -136,8 +152,8 @@ func formFromData(data []byte) resumeForm {
 		})
 	}
 	for _, c := range rd.Comments {
-		text, ai := render.SplitGeminiComment(c)
-		f.Comments = append(f.Comments, commentForm{Text: text, AI: ai})
+		text, kind, done := render.ParseComment(c)
+		f.Comments = append(f.Comments, commentForm{Text: text, Kind: kind, Done: done})
 	}
 	return f
 }
@@ -217,7 +233,7 @@ func parseResumeForm(v url.Values) resumeForm {
 		if text == "" {
 			continue
 		}
-		f.Comments = append(f.Comments, commentForm{Text: text, AI: at(sources, i) == "gemini"})
+		f.Comments = append(f.Comments, commentFromSource(text, at(sources, i)))
 	}
 
 	return f
@@ -279,14 +295,9 @@ func (f resumeForm) resumeData() render.ResumeData {
 		})
 	}
 	for _, c := range f.Comments {
-		text := strings.TrimSpace(c.Text)
-		if text == "" {
-			continue
+		if text := render.FormatComment(c.Text, c.Kind, c.Done); text != "" {
+			rd.Comments = append(rd.Comments, text)
 		}
-		if c.AI {
-			text = render.GeminiCommentPrefix + " " + text
-		}
-		rd.Comments = append(rd.Comments, text)
 	}
 	return rd
 }

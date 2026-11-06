@@ -170,7 +170,7 @@ func (s *Service) tailor(ctx context.Context, user store.User, detail ResumeDeta
 	if err != nil {
 		return uuid.Nil, err
 	}
-	data, err := normalizeAIResume(generated.Resume, original.Comments)
+	data, err := normalizeAIResume(generated.Resume, original.Comments, generated.Todos)
 	if err != nil {
 		return uuid.Nil, err
 	}
@@ -182,8 +182,9 @@ func (s *Service) tailor(ctx context.Context, user store.User, detail ResumeDeta
 }
 
 // normalizeAIResume validates the generated JSON and merges comments. The user's
-// existing comments are kept first, then Gemini's notes, each marked with the Gemini prefix.
-func normalizeAIResume(raw []byte, userComments []string) ([]byte, error) {
+// existing comments are kept first, then Gemini's notes and to-dos. Each is
+// marked with its prefix.
+func normalizeAIResume(raw []byte, userComments, todos []string) ([]byte, error) {
 	rd, err := decodeResume(raw)
 	if err != nil {
 		return nil, fmt.Errorf("Gemini returned invalid resume data: %w", err)
@@ -198,18 +199,28 @@ func normalizeAIResume(raw []byte, userComments []string) ([]byte, error) {
 		existing[normalizeComment(c)] = true
 		comments = append(comments, c)
 	}
-	var notes []string
+	var added []string
 	for _, c := range rd.Comments {
-		note := geminiNote(c)
-		if note == "" || existing[normalizeComment(c)] || existing[normalizeComment(note)] {
+		text, _, _ := render.ParseComment(c)
+		note := render.FormatComment(text, render.CommentGemini, false)
+		if text == "" || existing[normalizeComment(c)] || existing[normalizeComment(note)] {
 			continue
 		}
-		notes = append(notes, note)
+		added = append(added, note)
 	}
-	if len(notes) == 0 {
+	if len(added) == 0 {
 		return nil, errors.New("Gemini returned invalid resume data: no comments explaining the changes.")
 	}
-	rd.Comments = append(comments, notes...)
+	for _, t := range todos {
+		text, _, _ := render.ParseComment(t)
+		todo := render.FormatComment(text, render.CommentTodo, false)
+		if text == "" || existing[normalizeComment(todo)] {
+			continue
+		}
+		existing[normalizeComment(todo)] = true
+		added = append(added, todo)
+	}
+	rd.Comments = append(comments, added...)
 
 	// Keep empty sections as arrays rather than null so the editor and JSON
 	// view see the same shape as a hand-written resume.
@@ -243,16 +254,6 @@ func generatedResumeName(suggested, original string) string {
 		return resumeNameWithSuffix(original, aiSuffix)
 	}
 	return resumeNameWithSuffix(suggested, "")
-}
-
-// geminiNote prefixes a note with the Gemini marker, so notes the AI added are
-// easy to tell apart from the user's own comments. Blank notes return "".
-func geminiNote(note string) string {
-	text, _ := render.SplitGeminiComment(note)
-	if text == "" {
-		return ""
-	}
-	return render.GeminiCommentPrefix + " " + text
 }
 
 func normalizeComment(c string) string {

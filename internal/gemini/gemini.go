@@ -61,10 +61,12 @@ func New(opts Options) *Client {
 	}
 }
 
-// Result is a tailored resume. Resume is the resume JSON without the name, and
-// Name is the suggested name for the new resume.
+// Result is a tailored resume. Resume is the resume JSON without the name and
+// to-dos, Name is the suggested name for the new resume, and Todos are action
+// items for the user.
 type Result struct {
 	Name   string
+	Todos  []string
 	Resume []byte
 }
 
@@ -133,25 +135,33 @@ func (c *Client) TailorResume(ctx context.Context, resumeJSON []byte, prompt str
 	return splitName(object)
 }
 
-// splitName removes resume_name from the model's object, so the stored resume
-// matches the render.ResumeData schema.
+// splitName removes resume_name and todos from the model's object, so the stored
+// resume matches the render.ResumeData schema.
 func splitName(object []byte) (Result, error) {
 	var fields map[string]json.RawMessage
 	if err := json.Unmarshal(object, &fields); err != nil {
 		return Result{}, fmt.Errorf("gemini: response JSON: %w", err)
 	}
-	var name string
+	var result Result
 	if raw, ok := fields["resume_name"]; ok {
-		if err := json.Unmarshal(raw, &name); err != nil {
+		if err := json.Unmarshal(raw, &result.Name); err != nil {
 			return Result{}, fmt.Errorf("gemini: resume_name: %w", err)
 		}
 		delete(fields, "resume_name")
+	}
+	if raw, ok := fields["todos"]; ok {
+		if err := json.Unmarshal(raw, &result.Todos); err != nil {
+			return Result{}, fmt.Errorf("gemini: todos: %w", err)
+		}
+		delete(fields, "todos")
 	}
 	resume, err := json.Marshal(fields)
 	if err != nil {
 		return Result{}, err
 	}
-	return Result{Name: strings.TrimSpace(name), Resume: resume}, nil
+	result.Name = strings.TrimSpace(result.Name)
+	result.Resume = resume
+	return result, nil
 }
 
 func containsURL(s string) bool {
@@ -283,6 +293,10 @@ instructions or job description influenced the result. Write one short note per 
 item, addressed to the user. Do not repeat the user's existing comments; the application
 keeps those itself. Leave comments empty only if you changed nothing.
 
+The "todos" array holds recommendations, to-dos and action items for the user, such as
+facts to verify, things to add or follow up on, or items to prepare for an interview.
+Write each as a short imperative sentence. Leave it empty if there are none.
+
 The "resume_name" field is the name for this new version. If the instructions name a
 company, position, title or other detail, combine what is given into a short name, for
 example "Senior Go Engineer - Acme". Otherwise, base it on the original resume name.
@@ -346,7 +360,8 @@ var responseSchema = json.RawMessage(`{
       }
     },
     "comments": {"type": "ARRAY", "items": {"type": "STRING"}},
+    "todos": {"type": "ARRAY", "items": {"type": "STRING"}},
     "resume_name": {"type": "STRING"}
   },
-  "required": ["fullname", "contact", "experience", "education", "keywords", "skills", "comments", "resume_name"]
+  "required": ["fullname", "contact", "experience", "education", "keywords", "skills", "comments", "todos", "resume_name"]
 }`)

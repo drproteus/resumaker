@@ -22,7 +22,7 @@ func TestTailorResumeSendsPromptAndSchema(t *testing.T) {
 		w.Header().Set("Content-Type", "application/json")
 		_, _ = w.Write([]byte(`{
 			"candidates": [{
-				"content": {"parts": [{"text": "{\"fullname\":\"Jane\",\"comments\":[\"Because.\"],\"resume_name\":\"Go Engineer - Acme\"}"}]},
+				"content": {"parts": [{"text": "{\"fullname\":\"Jane\",\"comments\":[\"Because.\"],\"todos\":[\"Verify the start date\"],\"resume_name\":\"Go Engineer - Acme\"}"}]},
 				"finishReason": "STOP"
 			}]
 		}`))
@@ -42,8 +42,11 @@ func TestTailorResumeSendsPromptAndSchema(t *testing.T) {
 	if result.Name != "Go Engineer - Acme" {
 		t.Errorf("name = %q", result.Name)
 	}
-	if strings.Contains(string(result.Resume), "resume_name") {
-		t.Errorf("name leaked into the resume: %s", result.Resume)
+	if len(result.Todos) != 1 || result.Todos[0] != "Verify the start date" {
+		t.Errorf("todos = %q", result.Todos)
+	}
+	if strings.Contains(string(result.Resume), "resume_name") || strings.Contains(string(result.Resume), "todos") {
+		t.Errorf("name or todos leaked into the resume: %s", result.Resume)
 	}
 	if !strings.Contains(string(result.Resume), `"comments":["Because."]`) {
 		t.Errorf("resume = %s", result.Resume)
