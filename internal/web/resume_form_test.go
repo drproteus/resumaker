@@ -381,6 +381,7 @@ func TestEditFormShowsComments(t *testing.T) {
 		`id="section-contact"`,
 		`href="#section-tailor"`,
 		`href="#section-print"`,
+		`/static/toc.js`,
 		`id="section-print"`,
 		`id="section-tailor"`,
 	} {
