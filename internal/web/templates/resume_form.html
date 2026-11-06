@@ -110,9 +110,9 @@
                         <button class="btn btn-sm btn-outline-primary" type="button" data-add="comment" hidden>Add comment</button>
                     </div>
                     <div class="card-body" data-rows="comment">
-                        {{range .Comments}}{{template "comment_row" .}}{{else}}{{template "comment_row" $form.EmptyComment}}{{end}}
+                        {{range .Comments}}{{if .AI}}{{template "comment_gemini_row" .}}{{else}}{{template "comment_row" .}}{{end}}{{else}}{{template "comment_row" $form.EmptyComment}}{{end}}
                     </div>
-                    <div class="card-footer bg-body small text-body-secondary">Private notes such as to-dos or reminders. They are never printed. Notes from Gemini are marked with its icon.</div>
+                    <div class="card-footer bg-body small text-body-secondary">Private notes such as to-dos or reminders. They are never printed. Notes from Gemini are read-only; delete them once you have reviewed them.</div>
                 </div>
             </div>
 
@@ -175,6 +175,7 @@
         <template data-template="education">{{template "education_row" .EmptyEducation}}</template>
         <template data-template="skill">{{template "skill_row" .EmptySkill}}</template>
         <template data-template="comment">{{template "comment_row" .EmptyComment}}</template>
+        <template data-template="comment-gemini">{{template "comment_gemini_row" .EmptyComment}}</template>
     </div>
 </div>
 {{end}}
@@ -262,18 +263,25 @@
 
 {{define "comment_row"}}
 <div class="row g-2 align-items-center mb-2" data-row>
-    <input type="hidden" name="comment_source" value="{{if .AI}}gemini{{else}}user{{end}}">
-    <div class="col-auto d-flex{{if not .AI}} invisible{{end}}" data-gemini-mark>
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" class="text-primary" role="img" aria-label="Gemini">
-            <path d="M12 0C12 6.6 17.4 12 24 12C17.4 12 12 17.4 12 24C12 17.4 6.6 12 0 12C6.6 12 12 6.6 12 0Z"/>
-        </svg>
-    </div>
+    <input type="hidden" name="comment_source" value="user">
     <div class="col">
         <input class="form-control" name="comment" value="{{.Text}}" aria-label="Comment" placeholder="For example, follow up with the recruiter Friday">
     </div>
     <div class="col-auto">
-        <button class="btn btn-link btn-sm text-body-secondary text-decoration-none px-2" type="button" data-remove aria-label="Delete comment" title="Delete comment" hidden>&times;</button>
+        <button class="btn-close" type="button" data-remove aria-label="Delete comment" title="Delete comment" hidden></button>
     </div>
+</div>
+{{end}}
+
+{{define "comment_gemini_row"}}
+<div class="alert alert-secondary d-flex align-items-start gap-2 py-2 px-3 small mb-2" role="note" data-row>
+    <input type="hidden" name="comment_source" value="gemini">
+    <input type="hidden" name="comment" value="{{.Text}}">
+    <svg class="flex-shrink-0 mt-1 text-primary" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" role="img" aria-label="Gemini">
+        <path d="M12 0C12 6.6 17.4 12 24 12C17.4 12 12 17.4 12 24C12 17.4 6.6 12 0 12C6.6 12 12 6.6 12 0Z"/>
+    </svg>
+    <span class="flex-grow-1">{{.Text}}</span>
+    <button class="btn-close flex-shrink-0 mt-1" type="button" data-remove aria-label="Delete comment" title="Delete comment" hidden></button>
 </div>
 {{end}}
 

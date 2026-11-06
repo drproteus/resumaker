@@ -314,7 +314,7 @@ func TestEditFormShowsComments(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	form := formFromData([]byte(`{"fullname": "Jane Example", "comments": ["Led with Go."]}`)).withEditor("/resumes/abc")
+	form := formFromData([]byte(`{"fullname": "Jane Example", "comments": ["_Gemini: Led with Go."]}`)).withEditor("/resumes/abc")
 	form.ID = "abc"
 	form.Name = "Backend"
 	form.AIAvailable = true
@@ -331,7 +331,8 @@ func TestEditFormShowsComments(t *testing.T) {
 		`name="prompt"`,
 		`Tailor with Gemini`,
 		`name="comment"`,
-		`Led with Go.`,
+		`alert alert-secondary`,
+		`<input type="hidden" name="comment" value="Led with Go.">`,
 	} {
 		if !strings.Contains(body, want) {
 			t.Errorf("edit page missing %q", want)

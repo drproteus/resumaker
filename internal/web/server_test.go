@@ -6,7 +6,9 @@ import (
 	"strings"
 	"testing"
 
+	"earthmanlabs/resumaker/internal/app"
 	"earthmanlabs/resumaker/internal/auth"
+	"earthmanlabs/resumaker/internal/gemini"
 )
 
 func newTestHandler(t *testing.T) http.Handler {
@@ -69,6 +71,30 @@ func TestAboutPageListsTemplates(t *testing.T) {
 		if !strings.Contains(body, want) {
 			t.Errorf("about page missing %q", want)
 		}
+	}
+}
+
+func TestAboutPageDescribesGeminiOnlyWhenConfigured(t *testing.T) {
+	get := func(h http.Handler) string {
+		rec := httptest.NewRecorder()
+		h.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/about", nil))
+		if rec.Code != http.StatusOK {
+			t.Fatalf("status = %d", rec.Code)
+		}
+		return rec.Body.String()
+	}
+
+	if body := get(newTestHandler(t)); strings.Contains(body, "Tailoring with Gemini") {
+		t.Error("help page describes Gemini without a configured key")
+	}
+
+	svc := app.New(nil, nil, app.WithGenerator(gemini.New(gemini.Options{APIKey: "test-key"})))
+	srv, err := New(Options{}, svc, []*auth.Provider{auth.NewGitHub("id", "secret", "http://localhost/cb")})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if body := get(srv.Handler()); !strings.Contains(body, "Tailoring with Gemini") || !strings.Contains(body, "Google's Gemini") {
+		t.Error("help page does not describe Gemini when it is configured")
 	}
 }
 

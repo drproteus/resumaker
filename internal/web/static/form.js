@@ -364,21 +364,26 @@
       setField(row, "skill_items", textList(item.items));
     });
 
-    var comments = Array.isArray(data.comments) ? data.comments : [];
-    replaceRows("comment", comments.map(function (comment) {
-      var text = stringValue(comment);
-      var match = /^\s*_gemini:\s*/i.exec(text);
-      return match
-        ? { text: text.slice(match[0].length).trim(), ai: true }
-        : { text: text.trim(), ai: false };
-    }), function (row, item) {
-      setField(row, "comment", stringValue(item.text));
-      setField(row, "comment_source", item.ai ? "gemini" : "user");
-      var mark = row.querySelector("[data-gemini-mark]");
-      if (mark) {
-        mark.classList.toggle("invisible", !item.ai);
+    var container = document.querySelector('[data-rows="comment"]');
+    if (container) {
+      var comments = Array.isArray(data.comments) ? data.comments : [];
+      container.innerHTML = "";
+      if (!comments.length) {
+        comments = [""];
       }
-    });
+      comments.forEach(function (comment) {
+        var text = stringValue(comment);
+        var match = /^\s*_gemini:\s*/i.exec(text);
+        var isGemini = match !== null;
+        var row = makeRow(isGemini ? "comment-gemini" : "comment");
+        if (!row) {
+          return;
+        }
+        setField(row, "comment", (isGemini ? text.slice(match[0].length) : text).trim());
+        container.appendChild(row);
+        showControls(row);
+      });
+    }
   }
 
   function validateItems(name, items, stringFields, listFields) {

@@ -26,11 +26,13 @@ func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
 
 // helpView is the data shown on the help and about page.
 type helpView struct {
-	Templates []app.Template
+	Templates   []app.Template
+	AIAvailable bool
 }
 
 func (s *Server) handleAbout(w http.ResponseWriter, r *http.Request) {
-	p := page{Title: "Help & about", Data: helpView{Templates: app.Templates()}}
+	view := helpView{Templates: app.Templates(), AIAvailable: s.app.AIGenerationAvailable()}
+	p := page{Title: "Help & about", Data: view}
 	if user, ok := s.currentUser(r); ok {
 		p.User = &user
 	}
