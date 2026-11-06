@@ -376,6 +376,7 @@ func TestEditFormShowsComments(t *testing.T) {
 		`Tailor with Gemini`,
 		`name="comment"`,
 		`alert alert-secondary`,
+		`data-comment-text>Led with Go.</span>`,
 		`<input type="hidden" name="comment" value="Led with Go.">`,
 		`href="#section-contact"`,
 		`id="section-contact"`,

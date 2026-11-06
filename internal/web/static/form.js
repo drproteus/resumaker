@@ -428,6 +428,10 @@
           return;
         }
         setField(row, "comment", parsed.text);
+        var label = row.querySelector("[data-comment-text]");
+        if (label) {
+          label.textContent = parsed.text;
+        }
         if (parsed.kind === "todo") {
           var check = row.querySelector("[data-todo-check]");
           if (check) {

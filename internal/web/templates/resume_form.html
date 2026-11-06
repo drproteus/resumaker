@@ -296,7 +296,7 @@
     <input type="hidden" name="comment_source" value="{{if .Done}}todo-done{{else}}todo{{end}}">
     <input type="hidden" name="comment" value="{{.Text}}">
     <input class="form-check-input flex-shrink-0 mt-1" type="checkbox" aria-label="Done" data-todo-check{{if .Done}} checked{{end}}>
-    <span class="flex-grow-1{{if .Done}} text-decoration-line-through text-body-secondary{{end}}" data-todo-text>{{.Text}}</span>
+    <span class="flex-grow-1{{if .Done}} text-decoration-line-through text-body-secondary{{end}}" data-comment-text data-todo-text>{{.Text}}</span>
     <button class="btn-close flex-shrink-0 mt-1" type="button" data-remove aria-label="Delete to-do" title="Delete to-do" hidden></button>
 </div>
 {{end}}
@@ -308,7 +308,7 @@
     <svg class="flex-shrink-0 mt-1 text-primary" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" role="img" aria-label="Gemini">
         <path d="M12 0C12 6.6 17.4 12 24 12C17.4 12 12 17.4 12 24C12 17.4 6.6 12 0 12C6.6 12 12 6.6 12 0Z"/>
     </svg>
-    <span class="flex-grow-1">{{.Text}}</span>
+    <span class="flex-grow-1" data-comment-text>{{.Text}}</span>
     <button class="btn-close flex-shrink-0 mt-1" type="button" data-remove aria-label="Delete comment" title="Delete comment" hidden></button>
 </div>
 {{end}}
