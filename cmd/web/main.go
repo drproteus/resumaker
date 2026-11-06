@@ -11,6 +11,7 @@ import (
 	"earthmanlabs/resumaker/internal/auth"
 	"earthmanlabs/resumaker/internal/config"
 	"earthmanlabs/resumaker/internal/envelope"
+	"earthmanlabs/resumaker/internal/gemini"
 	"earthmanlabs/resumaker/internal/store"
 	"earthmanlabs/resumaker/internal/web"
 )
@@ -44,7 +45,15 @@ func run() error {
 	if err != nil {
 		return err
 	}
-	svc := app.New(st, keys)
+	var appOpts []app.Option
+	if cfg.Gemini.Enabled() {
+		appOpts = append(appOpts, app.WithGenerator(gemini.New(gemini.Options{
+			APIKey:  cfg.Gemini.APIKey,
+			Model:   cfg.Gemini.Model,
+			BaseURL: cfg.Gemini.BaseURL,
+		})))
+	}
+	svc := app.New(st, keys, appOpts...)
 
 	var providers []*auth.Provider
 	if cfg.GitHub.Enabled() {

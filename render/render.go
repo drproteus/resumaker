@@ -44,7 +44,11 @@ type ResumeData struct {
 	Education  []ResumeDataEdu        `json:"education"`
 	Keywords   []string               `json:"keywords"`
 	Skills     []ResumeDataSkillGroup `json:"skills"`
-	Style      template.CSS           `json:"-"`
+	// AI marks resumes produced by the Gemini integration.
+	AI bool `json:"ai,omitempty"`
+	// Comments explains the choices the AI made when producing the resume.
+	Comments string       `json:"comments,omitempty"`
+	Style    template.CSS `json:"-"`
 	// Toolbar adds a print button and instructions, used by the web preview.
 	Toolbar bool `json:"-"`
 }

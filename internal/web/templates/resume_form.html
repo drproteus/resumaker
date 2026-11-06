@@ -60,6 +60,15 @@
                                 <input class="form-control" id="keywords" name="keywords" value="{{.Keywords}}">
                                 <div class="form-text">Comma-separated, used in the page metadata.</div>
                             </div>
+                            <div class="col-12">
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" id="ai" name="ai" value="1"{{if .AI}} checked{{end}}>
+                                    <label class="form-check-label" for="ai">AI-assisted resume</label>
+                                </div>
+                                <label class="form-label" for="comments">AI notes</label>
+                                <textarea class="form-control" id="comments" name="comments" rows="3" placeholder="Why the AI made these choices">{{.Comments}}</textarea>
+                                <div class="form-text">Context explaining the AI's changes. Kept with the resume JSON and never printed.</div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -120,6 +129,26 @@
                 <a class="btn btn-link text-decoration-none" href="/resumes">Cancel</a>
             </div>
         </form>
+
+        {{if .ID}}{{if .AIAvailable}}
+        <div class="card shadow-sm mb-3 border-primary-subtle">
+            <div class="card-body p-4">
+                <h2 class="h5 mb-2">Tailor with Gemini</h2>
+                <p class="text-body-secondary">Paste a job description, one or more links, skills to highlight, or
+                    any other instructions. Gemini will create a new AI-assisted version of this resume; the original
+                    stays exactly as it is.</p>
+                <form method="post" action="/resumes/{{.ID}}/tailor">
+                    <label class="form-label" for="prompt">Job description or instructions</label>
+                    <textarea class="form-control mb-2" id="prompt" name="prompt" rows="6" required
+                        placeholder="Paste the job description or a link to it, then add anything you want emphasised.">{{.Prompt}}</textarea>
+                    <div class="d-flex align-items-center gap-2">
+                        <button class="btn btn-primary" type="submit">Create AI version</button>
+                        <span class="form-text m-0">Job links are read by Gemini, not fetched by this server.</span>
+                    </div>
+                </form>
+            </div>
+        </div>
+        {{end}}{{end}}
 
         {{if .ID}}
         <div class="card shadow-sm mt-4">

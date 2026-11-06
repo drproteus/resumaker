@@ -19,12 +19,27 @@ import (
 const sessionTTL = 30 * 24 * time.Hour
 
 type Service struct {
-	store *store.Store
-	keys  *envelope.Keyring
+	store     *store.Store
+	keys      *envelope.Keyring
+	generator ResumeGenerator
 }
 
-func New(st *store.Store, keys *envelope.Keyring) *Service {
-	return &Service{store: st, keys: keys}
+// Option configures optional service integrations.
+type Option func(*Service)
+
+// WithGenerator enables AI-assisted resume generation.
+func WithGenerator(g ResumeGenerator) Option {
+	return func(s *Service) {
+		s.generator = g
+	}
+}
+
+func New(st *store.Store, keys *envelope.Keyring, opts ...Option) *Service {
+	svc := &Service{store: st, keys: keys}
+	for _, opt := range opts {
+		opt(svc)
+	}
+	return svc
 }
 
 // SignIn returns the user linked to an identity, creating the account on first sign-in.

@@ -52,6 +52,13 @@ type resumeForm struct {
 	Education  []educationForm
 	Keywords   string
 	Skills     []skillForm
+	AI         bool
+	Comments   string
+
+	// AIAvailable controls whether the edit page offers the Gemini form.
+	AIAvailable bool
+	// Prompt preserves the user's instructions after a generation error.
+	Prompt string
 
 	Error string
 
@@ -95,6 +102,8 @@ func formFromData(data []byte) resumeForm {
 	f := resumeForm{
 		Fullname: rd.Fullname,
 		Keywords: strings.Join(rd.Keywords, ", "),
+		AI:       rd.AI,
+		Comments: rd.Comments,
 	}
 	for _, c := range rd.Contact {
 		f.Contacts = append(f.Contacts, contactForm{Type: normalizeContactType(c.Type), Value: c.Value})
@@ -133,6 +142,8 @@ func parseResumeForm(v url.Values) resumeForm {
 		TemplateID: v.Get("template"),
 		Fullname:   strings.TrimSpace(v.Get("fullname")),
 		Keywords:   strings.TrimSpace(v.Get("keywords")),
+		AI:         v.Get("ai") == "1" || v.Get("ai") == "on",
+		Comments:   strings.TrimSpace(v.Get("comments")),
 	}
 
 	types, values := v["contact_type"], v["contact_value"]
@@ -218,6 +229,8 @@ func (f resumeForm) resumeData() render.ResumeData {
 		Education:  []render.ResumeDataEdu{},
 		Keywords:   splitList(f.Keywords),
 		Skills:     []render.ResumeDataSkillGroup{},
+		AI:         f.AI,
+		Comments:   strings.TrimSpace(f.Comments),
 	}
 	for _, c := range f.Contacts {
 		if c.Value == "" {

@@ -245,6 +245,15 @@
       skills: []
     };
 
+    var ai = document.querySelector('[name="ai"]');
+    if (ai && ai.checked) {
+      data.ai = true;
+    }
+    var comments = fieldText(document, "comments");
+    if (comments) {
+      data.comments = comments;
+    }
+
     sectionRows("contact").forEach(function (row) {
       var value = fieldText(row, "contact_value");
       if (!value) {
@@ -325,6 +334,11 @@
   function populateForm(data) {
     setField(document, "fullname", stringValue(data.fullname));
     setField(document, "keywords", Array.isArray(data.keywords) ? data.keywords.join(", ") : "");
+    setField(document, "comments", stringValue(data.comments));
+    var ai = document.querySelector('[name="ai"]');
+    if (ai) {
+      ai.checked = data.ai === true;
+    }
 
     replaceRows("contact", Array.isArray(data.contact) ? data.contact : [], function (row, item) {
       var type = contactType(stringValue(item.type));
@@ -395,7 +409,7 @@
     if (!data || typeof data !== "object" || Array.isArray(data)) {
       return "The JSON must be an object.";
     }
-    var allowed = ["fullname", "contact", "experience", "education", "keywords", "skills"];
+    var allowed = ["fullname", "contact", "experience", "education", "keywords", "skills", "ai", "comments"];
     var unknown = Object.keys(data).filter(function (key) {
       return allowed.indexOf(key) < 0;
     });
@@ -404,6 +418,12 @@
     }
     if ("fullname" in data && typeof data.fullname !== "string") {
       return "fullname must be a string.";
+    }
+    if ("ai" in data && typeof data.ai !== "boolean") {
+      return "ai must be a boolean.";
+    }
+    if ("comments" in data && typeof data.comments !== "string") {
+      return "comments must be a string.";
     }
     if ("keywords" in data) {
       if (!Array.isArray(data.keywords)) {

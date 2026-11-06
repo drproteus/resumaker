@@ -2,6 +2,7 @@ package web
 
 import (
 	"errors"
+	"log"
 	"net/http"
 
 	"github.com/google/uuid"
@@ -110,17 +111,27 @@ func (s *Server) handleResumeEdit(w http.ResponseWriter, r *http.Request, user s
 	if !ok {
 		return
 	}
-	detail, err := s.app.GetResume(r.Context(), user, id)
+	form, err := s.editForm(r, user, id)
 	if err != nil {
 		s.resumeError(w, r, err)
 		return
 	}
+	s.render(w, http.StatusOK, "resume_form.html", page{Title: "Edit resume", User: &user, Data: form})
+}
 
+// editForm loads a stored resume into the editor model, including the optional
+// Gemini controls.
+func (s *Server) editForm(r *http.Request, user store.User, id uuid.UUID) (resumeForm, error) {
+	detail, err := s.app.GetResume(r.Context(), user, id)
+	if err != nil {
+		return resumeForm{}, err
+	}
 	form := formFromData(detail.Data).withEditor("/resumes/" + id.String())
 	form.ID = id.String()
 	form.Name = detail.Name
 	form.TemplateID = detail.TemplateID
-	s.render(w, http.StatusOK, "resume_form.html", page{Title: "Edit resume", User: &user, Data: form})
+	form.AIAvailable = s.app.AIGenerationAvailable()
+	return form, nil
 }
 
 func (s *Server) handleResumeUpdate(w http.ResponseWriter, r *http.Request, user store.User) {
@@ -141,6 +152,7 @@ func (s *Server) handleResumeUpdate(w http.ResponseWriter, r *http.Request, user
 		var inputErr *app.InputError
 		if errors.As(err, &inputErr) {
 			form.ID = id.String()
+			form.AIAvailable = s.app.AIGenerationAvailable()
 			form.Error = inputErr.Msg
 			s.render(w, http.StatusUnprocessableEntity, "resume_form.html", page{Title: "Edit resume", User: &user, Data: form})
 			return
@@ -162,6 +174,47 @@ func (s *Server) handleResumeDuplicate(w http.ResponseWriter, r *http.Request, u
 		return
 	}
 	http.Redirect(w, r, "/resumes/"+newID.String(), http.StatusSeeOther)
+}
+
+// handleResumeTailor creates a new AI-generated version of a resume. The
+// original stays untouched, so the user can compare the two.
+func (s *Server) handleResumeTailor(w http.ResponseWriter, r *http.Request, user store.User) {
+	id, ok := parseID(w, r)
+	if !ok {
+		return
+	}
+	r.Body = http.MaxBytesReader(w, r.Body, maxFormBytes)
+	if err := r.ParseForm(); err != nil {
+		http.Error(w, "Request is too large or malformed.", http.StatusBadRequest)
+		return
+	}
+	prompt := r.PostFormValue("prompt")
+
+	newID, err := s.app.TailorResume(r.Context(), user, id, prompt)
+	if err != nil {
+		var inputErr *app.InputError
+		if errors.As(err, &inputErr) {
+			s.renderTailorError(w, r, user, id, prompt, inputErr.Msg, http.StatusUnprocessableEntity)
+			return
+		}
+		log.Printf("tailor resume %s: %v", id, err)
+		s.renderTailorError(w, r, user, id, prompt,
+			"Gemini could not generate a resume. Please try again in a moment.",
+			http.StatusBadGateway)
+		return
+	}
+	http.Redirect(w, r, "/resumes/"+newID.String(), http.StatusSeeOther)
+}
+
+func (s *Server) renderTailorError(w http.ResponseWriter, r *http.Request, user store.User, id uuid.UUID, prompt, message string, status int) {
+	form, err := s.editForm(r, user, id)
+	if err != nil {
+		s.resumeError(w, r, err)
+		return
+	}
+	form.Prompt = prompt
+	form.Error = message
+	s.render(w, status, "resume_form.html", page{Title: "Edit resume", User: &user, Data: form})
 }
 
 func (s *Server) handleResumeDelete(w http.ResponseWriter, r *http.Request, user store.User) {

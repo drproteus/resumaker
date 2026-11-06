@@ -119,15 +119,19 @@ func (s *Service) DuplicateResume(ctx context.Context, user store.User, id uuid.
 
 // duplicateName appends a marker while keeping the result within the name limit.
 func duplicateName(name string) string {
+	return resumeNameWithSuffix(name, copySuffix)
+}
+
+func resumeNameWithSuffix(name, suffix string) string {
 	name = strings.TrimSpace(name)
 	if name == "" {
 		name = "Resume"
 	}
-	limit := maxNameLength - utf8.RuneCountInString(copySuffix)
+	limit := maxNameLength - utf8.RuneCountInString(suffix)
 	if runes := []rune(name); len(runes) > limit {
 		name = string(runes[:limit])
 	}
-	return name + copySuffix
+	return name + suffix
 }
 
 func (s *Service) UpdateResume(ctx context.Context, user store.User, id uuid.UUID, in ResumeInput) error {
@@ -180,17 +184,9 @@ func validate(in ResumeInput) (string, []byte, error) {
 // normalizeResume checks the JSON against the resume schema and re-indents it.
 // Unknown fields are rejected so typos surface instead of being silently dropped.
 func normalizeResume(raw []byte) ([]byte, error) {
-	if len(bytes.TrimSpace(raw)) == 0 {
-		return nil, errors.New("Resume data is empty.")
-	}
-	dec := json.NewDecoder(bytes.NewReader(raw))
-	dec.DisallowUnknownFields()
-	var rd render.ResumeData
-	if err := dec.Decode(&rd); err != nil {
-		return nil, fmt.Errorf("Resume data: %v", err)
-	}
-	if _, err := dec.Token(); !errors.Is(err, io.EOF) {
-		return nil, errors.New("Resume data: unexpected content after the document.")
+	rd, err := decodeResume(raw)
+	if err != nil {
+		return nil, err
 	}
 	if strings.TrimSpace(rd.Fullname) == "" {
 		return nil, errors.New("Full name is required.")
@@ -201,6 +197,23 @@ func normalizeResume(raw []byte) ([]byte, error) {
 		return nil, err
 	}
 	return out.Bytes(), nil
+}
+
+// decodeResume parses resume JSON and rejects fields outside the schema.
+func decodeResume(raw []byte) (render.ResumeData, error) {
+	if len(bytes.TrimSpace(raw)) == 0 {
+		return render.ResumeData{}, errors.New("Resume data is empty.")
+	}
+	dec := json.NewDecoder(bytes.NewReader(raw))
+	dec.DisallowUnknownFields()
+	var rd render.ResumeData
+	if err := dec.Decode(&rd); err != nil {
+		return render.ResumeData{}, fmt.Errorf("Resume data: %v", err)
+	}
+	if _, err := dec.Token(); !errors.Is(err, io.EOF) {
+		return render.ResumeData{}, errors.New("Resume data: unexpected content after the document.")
+	}
+	return rd, nil
 }
 
 func validTemplate(id string) bool {
