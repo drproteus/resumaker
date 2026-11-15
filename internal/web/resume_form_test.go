@@ -372,6 +372,8 @@ func TestEditFormShowsComments(t *testing.T) {
 	body := buf.String()
 	for _, want := range []string{
 		`action="/resumes/abc/tailor"`,
+		`action="/resumes/abc/cover-letter"`,
+		`Generate a cover letter with Gemini`,
 		`name="prompt"`,
 		`Tailor with Gemini`,
 		`name="comment"`,
@@ -408,6 +410,9 @@ func TestEditFormHidesGeminiTailorFormWhenDisabled(t *testing.T) {
 	}
 	if strings.Contains(buf.String(), `action="/resumes/abc/tailor"`) {
 		t.Error("tailor form shown without a configured generator")
+	}
+	if strings.Contains(buf.String(), `action="/resumes/abc/cover-letter"`) {
+		t.Error("cover letter form shown without a configured generator")
 	}
 }
 

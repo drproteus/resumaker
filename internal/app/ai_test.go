@@ -127,6 +127,40 @@ func (f *fakeGenerator) TailorResume(_ context.Context, _ []byte, prompt string)
 	return f.result, f.err
 }
 
+func (f *fakeGenerator) CoverLetter(_ context.Context, _ []byte, prompt string) (string, error) {
+	f.calls++
+	f.prompt = prompt
+	return "Dear Hiring Manager,\n\nMy experience is a match.", f.err
+}
+
+func TestCoverLetterJobOwnershipAndFailure(t *testing.T) {
+	user := store.User{ID: uuid.New()}
+	svc := New(nil, nil, WithGenerator(&fakeGenerator{}))
+	job := svc.tailorings.add(user.ID, "cover-letter")
+	svc.runGeneration(job.ID, user, ResumeDetail{Data: []byte(`{"fullname":"Jane"}`)}, "Go job", "cover-letter")
+	result, err := svc.Tailoring(user, job.ID)
+	if err != nil || result.Status != TailoringDone || !strings.Contains(result.Letter, "Dear Hiring Manager") {
+		t.Fatalf("result = %+v, err = %v", result, err)
+	}
+	if _, err := svc.Tailoring(store.User{ID: uuid.New()}, job.ID); !errors.Is(err, store.ErrNotFound) {
+		t.Fatalf("other user accessed letter: %v", err)
+	}
+	svc.tailorings.mu.Lock()
+	svc.tailorings.jobs[job.ID].finishedAt = time.Now().Add(-finishedTailoringTTL - time.Second)
+	svc.tailorings.mu.Unlock()
+	if _, err := svc.Tailoring(user, job.ID); !errors.Is(err, store.ErrNotFound) {
+		t.Fatalf("expired letter remains available: %v", err)
+	}
+
+	svc.generator = &fakeGenerator{err: errors.New("private upstream error")}
+	failed := svc.tailorings.add(user.ID, "cover-letter")
+	svc.runGeneration(failed.ID, user, ResumeDetail{}, "job", "cover-letter")
+	result, err = svc.Tailoring(user, failed.ID)
+	if err != nil || result.Status != TailoringFailed || !strings.Contains(result.Error, "cover letter") || strings.Contains(result.Error, "private") {
+		t.Fatalf("failed result = %+v, err = %v", result, err)
+	}
+}
+
 // waitForTailoring polls a job until it leaves the pending state.
 func waitForTailoring(t *testing.T, svc *Service, user store.User, jobID string) Tailoring {
 	t.Helper()

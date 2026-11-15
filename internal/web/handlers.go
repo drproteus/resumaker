@@ -184,6 +184,14 @@ func (s *Server) handleResumeDuplicate(w http.ResponseWriter, r *http.Request, u
 // background and sends the browser to its progress page. The original stays
 // untouched, so the user can compare the two.
 func (s *Server) handleResumeTailor(w http.ResponseWriter, r *http.Request, user store.User) {
+	s.handleResumeGeneration(w, r, user, false)
+}
+
+func (s *Server) handleResumeCoverLetter(w http.ResponseWriter, r *http.Request, user store.User) {
+	s.handleResumeGeneration(w, r, user, true)
+}
+
+func (s *Server) handleResumeGeneration(w http.ResponseWriter, r *http.Request, user store.User, coverLetter bool) {
 	id, ok := parseID(w, r)
 	if !ok {
 		return
@@ -195,11 +203,17 @@ func (s *Server) handleResumeTailor(w http.ResponseWriter, r *http.Request, user
 	}
 	prompt := r.PostFormValue("prompt")
 
-	jobID, err := s.app.StartTailor(r.Context(), user, id, prompt)
+	var jobID string
+	var err error
+	if coverLetter {
+		jobID, err = s.app.StartCoverLetter(r.Context(), user, id, prompt)
+	} else {
+		jobID, err = s.app.StartTailor(r.Context(), user, id, prompt)
+	}
 	if err != nil {
 		var inputErr *app.InputError
 		if errors.As(err, &inputErr) {
-			s.renderTailorError(w, r, user, id, prompt, inputErr.Msg, http.StatusUnprocessableEntity)
+			s.renderTailorError(w, r, user, id, prompt, inputErr.Msg, http.StatusUnprocessableEntity, coverLetter)
 			return
 		}
 		s.resumeError(w, r, err)
@@ -218,13 +232,21 @@ func (s *Server) handleTailoring(w http.ResponseWriter, r *http.Request, user st
 	}
 	switch job.Status {
 	case app.TailoringDone:
+		if job.Kind == "cover-letter" {
+			s.render(w, http.StatusOK, "tailoring.html", page{Title: "Your cover letter", User: &user, Data: job})
+			return
+		}
 		http.Redirect(w, r, "/resumes/"+job.ResumeID.String(), http.StatusSeeOther)
 		return
 	case app.TailoringFailed:
-		s.render(w, http.StatusOK, "tailoring.html", page{Title: "Tailoring failed", User: &user, Data: job})
+		s.render(w, http.StatusOK, "tailoring.html", page{Title: "Generation failed", User: &user, Data: job})
 		return
 	}
-	s.render(w, http.StatusOK, "tailoring.html", page{Title: "Tailoring resume", User: &user, Data: job})
+	title := "Tailoring resume"
+	if job.Kind == "cover-letter" {
+		title = "Generating cover letter"
+	}
+	s.render(w, http.StatusOK, "tailoring.html", page{Title: title, User: &user, Data: job})
 }
 
 // handleTailoringStatus reports a job's state as JSON for the progress page.
@@ -235,7 +257,9 @@ func (s *Server) handleTailoringStatus(w http.ResponseWriter, r *http.Request, u
 		return
 	}
 	status := tailoringStatus{Status: string(job.Status), Error: job.Error}
-	if job.Status == app.TailoringDone {
+	if job.Status == app.TailoringDone && job.Kind == "cover-letter" {
+		status.URL = "/tailoring/" + job.ID
+	} else if job.Status == app.TailoringDone {
 		status.URL = "/resumes/" + job.ResumeID.String()
 	}
 	h := w.Header()
@@ -250,13 +274,17 @@ type tailoringStatus struct {
 	Error  string `json:"error,omitempty"`
 }
 
-func (s *Server) renderTailorError(w http.ResponseWriter, r *http.Request, user store.User, id uuid.UUID, prompt, message string, status int) {
+func (s *Server) renderTailorError(w http.ResponseWriter, r *http.Request, user store.User, id uuid.UUID, prompt, message string, status int, coverLetter bool) {
 	form, err := s.editForm(r, user, id)
 	if err != nil {
 		s.resumeError(w, r, err)
 		return
 	}
-	form.Prompt = prompt
+	if coverLetter {
+		form.CoverPrompt = prompt
+	} else {
+		form.Prompt = prompt
+	}
 	form.Error = message
 	s.render(w, status, "resume_form.html", page{Title: "Edit resume", User: &user, Data: form})
 }

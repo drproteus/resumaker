@@ -36,6 +36,21 @@ func TestResumesRequireSignIn(t *testing.T) {
 	}
 }
 
+func TestCoverLetterRoutesRequireSignIn(t *testing.T) {
+	h := newTestHandler(t)
+	for _, tc := range []struct{ method, path string }{
+		{http.MethodPost, "/resumes/00000000-0000-0000-0000-000000000001/cover-letter"},
+		{http.MethodGet, "/tailoring/job"},
+		{http.MethodGet, "/tailoring/job/status"},
+	} {
+		rec := httptest.NewRecorder()
+		h.ServeHTTP(rec, httptest.NewRequest(tc.method, tc.path, nil))
+		if rec.Code != http.StatusSeeOther || rec.Header().Get("Location") != "/login" {
+			t.Errorf("%s %s: status = %d, location = %q", tc.method, tc.path, rec.Code, rec.Header().Get("Location"))
+		}
+	}
+}
+
 func TestLoginPageListsProviders(t *testing.T) {
 	h := newTestHandler(t)
 	rec := httptest.NewRecorder()

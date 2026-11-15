@@ -29,10 +29,10 @@ const (
 	tailorFailedMessage  = "Gemini could not generate a resume. Please try again in a moment."
 )
 
-// ResumeGenerator produces tailored resume JSON from an existing resume and
-// natural-language instructions. The Gemini client implements it.
+// ResumeGenerator produces tailored resumes and cover letters.
 type ResumeGenerator interface {
 	TailorResume(ctx context.Context, resumeJSON []byte, prompt string) (gemini.Result, error)
+	CoverLetter(ctx context.Context, resumeJSON []byte, prompt string) (string, error)
 }
 
 type TailoringStatus string
@@ -48,6 +48,8 @@ type Tailoring struct {
 	ID       string
 	Status   TailoringStatus
 	ResumeID uuid.UUID
+	Kind     string
+	Letter   string
 	// Error is safe to show to the user.
 	Error string
 }
@@ -69,7 +71,7 @@ func newTailorings() *tailorings {
 	return &tailorings{jobs: map[string]*tailoringJob{}}
 }
 
-func (t *tailorings) add(userID uuid.UUID) *tailoringJob {
+func (t *tailorings) add(userID uuid.UUID, kind string) *tailoringJob {
 	t.mu.Lock()
 	defer t.mu.Unlock()
 
@@ -80,14 +82,14 @@ func (t *tailorings) add(userID uuid.UUID) *tailoringJob {
 		}
 	}
 	job := &tailoringJob{
-		Tailoring: Tailoring{ID: uuid.NewString(), Status: TailoringPending},
+		Tailoring: Tailoring{ID: uuid.NewString(), Status: TailoringPending, Kind: kind},
 		userID:    userID,
 	}
 	t.jobs[job.ID] = job
 	return job
 }
 
-func (t *tailorings) finish(id string, resumeID uuid.UUID, err error) {
+func (t *tailorings) finish(id string, resumeID uuid.UUID, letter string, err error) {
 	t.mu.Lock()
 	defer t.mu.Unlock()
 
@@ -96,13 +98,24 @@ func (t *tailorings) finish(id string, resumeID uuid.UUID, err error) {
 		return
 	}
 	job.finishedAt = time.Now()
+	if job.Kind == "cover-letter" {
+		time.AfterFunc(finishedTailoringTTL, func() {
+			t.mu.Lock()
+			defer t.mu.Unlock()
+			delete(t.jobs, id)
+		})
+	}
 	if err != nil {
 		job.Status = TailoringFailed
 		job.Error = tailorFailedMessage
+		if job.Kind == "cover-letter" {
+			job.Error = "Gemini could not generate a cover letter. Please try again in a moment."
+		}
 		return
 	}
 	job.Status = TailoringDone
 	job.ResumeID = resumeID
+	job.Letter = letter
 }
 
 // Tailoring returns the status of a generation job started by the user.
@@ -115,6 +128,10 @@ func (s *Service) Tailoring(user store.User, jobID string) (Tailoring, error) {
 	if !ok || job.userID != user.ID {
 		return Tailoring{}, store.ErrNotFound
 	}
+	if job.Kind == "cover-letter" && !job.finishedAt.IsZero() && time.Since(job.finishedAt) > finishedTailoringTTL {
+		delete(s.tailorings.jobs, jobID)
+		return Tailoring{}, store.ErrNotFound
+	}
 	return job.Tailoring, nil
 }
 
@@ -122,6 +139,15 @@ func (s *Service) Tailoring(user store.User, jobID string) (Tailoring, error) {
 // background so the HTTP request returns straight away. Poll Tailoring with the
 // returned job ID for the result. The original resume is never changed.
 func (s *Service) StartTailor(ctx context.Context, user store.User, id uuid.UUID, prompt string) (string, error) {
+	return s.startGeneration(ctx, user, id, prompt, "resume")
+}
+
+// StartCoverLetter generates a temporary, editable letter from the saved resume.
+func (s *Service) StartCoverLetter(ctx context.Context, user store.User, id uuid.UUID, prompt string) (string, error) {
+	return s.startGeneration(ctx, user, id, prompt, "cover-letter")
+}
+
+func (s *Service) startGeneration(ctx context.Context, user store.User, id uuid.UUID, prompt, kind string) (string, error) {
 	if s.generator == nil {
 		return "", &InputError{Msg: "Gemini is not configured on this server."}
 	}
@@ -130,7 +156,7 @@ func (s *Service) StartTailor(ctx context.Context, user store.User, id uuid.UUID
 		return "", err
 	}
 	if !enabled {
-		return "", &InputError{Msg: "Tailor with Gemini is not enabled for your account."}
+		return "", &InputError{Msg: "Gemini is not enabled for your account."}
 	}
 	prompt = strings.TrimSpace(prompt)
 	if prompt == "" {
@@ -145,20 +171,30 @@ func (s *Service) StartTailor(ctx context.Context, user store.User, id uuid.UUID
 		return "", err
 	}
 
-	job := s.tailorings.add(user.ID)
-	go s.runTailor(job.ID, user, detail, prompt)
+	job := s.tailorings.add(user.ID, kind)
+	go s.runGeneration(job.ID, user, detail, prompt, kind)
 	return job.ID, nil
 }
 
-func (s *Service) runTailor(jobID string, user store.User, detail ResumeDetail, prompt string) {
+func (s *Service) runGeneration(jobID string, user store.User, detail ResumeDetail, prompt, kind string) {
 	ctx, cancel := context.WithTimeout(context.Background(), tailorTimeout)
 	defer cancel()
 
-	newID, err := s.tailor(ctx, user, detail, prompt)
-	if err != nil {
-		log.Printf("tailor resume %s: %v", detail.ID, err)
+	var newID uuid.UUID
+	var letter string
+	var err error
+	if kind == "cover-letter" {
+		letter, err = s.generator.CoverLetter(ctx, detail.Data, prompt)
+		if err == nil && strings.TrimSpace(letter) == "" {
+			err = errors.New("empty cover letter")
+		}
+	} else {
+		newID, err = s.tailor(ctx, user, detail, prompt)
 	}
-	s.tailorings.finish(jobID, newID, err)
+	if err != nil {
+		log.Printf("generate %s for resume %s: %v", kind, detail.ID, err)
+	}
+	s.tailorings.finish(jobID, newID, letter, err)
 }
 
 // tailor saves the generated version as a new resume.

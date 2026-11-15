@@ -2,10 +2,21 @@
 {{with .Data}}
 <div class="row justify-content-center">
     <div class="col-lg-7">
-        {{if eq .Status "failed"}}
+        {{if and (eq .Kind "cover-letter") (eq .Status "done")}}
         <div class="card shadow-sm">
             <div class="card-body p-4">
-                <h1 class="h4">Gemini could not tailor the resume</h1>
+                <h1 class="h4">Your cover letter</h1>
+                <p class="text-body-secondary">Review and edit the letter, then copy it somewhere safe. It is not saved;
+                    this result expires after one hour or when the server restarts. Edits are lost if you reload.</p>
+                <label class="form-label" for="letter">Cover letter</label>
+                <textarea class="form-control mb-3" id="letter" rows="20">{{.Letter}}</textarea>
+                <a class="btn btn-outline-primary" href="/resumes">Back to resumes</a>
+            </div>
+        </div>
+        {{else if eq .Status "failed"}}
+        <div class="card shadow-sm">
+            <div class="card-body p-4">
+                <h1 class="h4">Generation failed</h1>
                 <div class="alert alert-danger mt-3" role="alert">{{.Error}}</div>
                 <a class="btn btn-outline-primary" href="/resumes">Back to resumes</a>
             </div>
@@ -15,11 +26,11 @@
             <div class="card-body p-4">
                 <div class="d-flex align-items-center gap-3 mb-3">
                     <div class="spinner-border text-primary" role="status" aria-hidden="true"></div>
-                    <h1 class="h4 mb-0">Tailoring your resume</h1>
+                    <h1 class="h4 mb-0">{{if eq .Kind "cover-letter"}}Generating your cover letter{{else}}Tailoring your resume{{end}}</h1>
                 </div>
-                <p class="text-body-secondary mb-2">Gemini is reading your instructions and writing a new version.
+                <p class="text-body-secondary mb-2">Gemini is reading your instructions and writing {{if eq .Kind "cover-letter"}}your letter{{else}}a new version{{end}}.
                     This usually takes under a minute.</p>
-                <p class="text-body-secondary mb-3">You can leave this page open; it opens the new resume when it is ready.</p>
+                <p class="text-body-secondary mb-3">You can leave this page open; it opens the result when it is ready.</p>
                 <div class="alert alert-danger d-none" role="alert" data-tailoring-error></div>
                 <div class="d-flex flex-wrap gap-2">
                     <button class="btn btn-outline-secondary btn-sm" type="button" onclick="location.reload()">Check again</button>

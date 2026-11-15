@@ -8,7 +8,7 @@ import (
 	"earthmanlabs/resumaker/internal/store"
 )
 
-// FeatureGemini gates Tailor with Gemini. It is switched on per user with the
+// FeatureGemini gates Gemini features. It is switched on per user with the
 // admin command.
 const FeatureGemini = "gemini"
 
@@ -39,7 +39,7 @@ func (s *Service) FeatureEnabled(ctx context.Context, user store.User, feature s
 	return s.store.HasFeature(ctx, user.ID, feature)
 }
 
-// AIAvailableFor reports whether the user can use Tailor with Gemini: a key is
+// AIAvailableFor reports whether the user can use Gemini: a key is
 // configured on the server and the user's feature flag is on. A failed lookup
 // is logged and treated as off, so the page still renders.
 func (s *Service) AIAvailableFor(ctx context.Context, user store.User) bool {

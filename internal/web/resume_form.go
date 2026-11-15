@@ -79,7 +79,8 @@ type resumeForm struct {
 	// AIAvailable controls whether the edit page offers the Gemini form.
 	AIAvailable bool
 	// Prompt preserves the user's instructions after a generation error.
-	Prompt string
+	Prompt      string
+	CoverPrompt string
 
 	Error string
 
