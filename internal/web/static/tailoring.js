@@ -1,6 +1,5 @@
-// Polls a background resume generation and opens the new resume when it is
-// ready. The page still works without this script: it shows progress and the
-// user can check again.
+// Polls a background generation and opens its result when ready. Without
+// JavaScript the user can check again by reloading the page.
 (function () {
   var card = document.querySelector("[data-tailoring]");
   if (!card) {

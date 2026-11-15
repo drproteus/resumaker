@@ -121,6 +121,48 @@ func TestTailorResumeReportsAPIErrors(t *testing.T) {
 	}
 }
 
+func TestCoverLetterSendsResumeAndJob(t *testing.T) {
+	var got map[string]any
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if err := json.NewDecoder(r.Body).Decode(&got); err != nil {
+			t.Error(err)
+		}
+		_, _ = w.Write([]byte(`{"candidates":[{"content":{"parts":[{"text":"{\"letter\":\"Dear team,\\n\\nI write Go.\"}"}]}}]}`))
+	}))
+	defer srv.Close()
+	client := New(Options{APIKey: "k", BaseURL: srv.URL, HTTPClient: srv.Client()})
+	letter, err := client.CoverLetter(context.Background(), []byte(`{"fullname":"Jane"}`), "https://example.com/job")
+	if err != nil || letter != "Dear team,\n\nI write Go." {
+		t.Fatalf("letter = %q, err = %v", letter, err)
+	}
+	request, err := json.Marshal(got)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, want := range []string{"Jane", "https://example.com/job", "url_context", "responseSchema"} {
+		if !strings.Contains(string(request), want) {
+			t.Errorf("request missing %q: %s", want, request)
+		}
+	}
+}
+
+func TestCoverLetterRejectsEmptyOrInvalidResponse(t *testing.T) {
+	for _, response := range []string{`{"letter":" "}`, `{"letter":42}`, `{}`} {
+		t.Run(response, func(t *testing.T) {
+			srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				_ = json.NewEncoder(w).Encode(map[string]any{"candidates": []any{
+					map[string]any{"content": map[string]any{"parts": []any{map[string]any{"text": response}}}},
+				}})
+			}))
+			defer srv.Close()
+			client := New(Options{APIKey: "k", BaseURL: srv.URL, HTTPClient: srv.Client()})
+			if _, err := client.CoverLetter(context.Background(), []byte(`{}`), "job"); err == nil {
+				t.Fatal("expected invalid letter to fail")
+			}
+		})
+	}
+}
+
 func TestExtractJSON(t *testing.T) {
 	tests := map[string]string{
 		"plain":          `{"fullname":"Jane"}`,

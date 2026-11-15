@@ -28,7 +28,7 @@ type Service struct {
 // Option configures optional service integrations.
 type Option func(*Service)
 
-// WithGenerator enables AI-assisted resume generation.
+// WithGenerator enables AI-assisted generation.
 func WithGenerator(g ResumeGenerator) Option {
 	return func(s *Service) {
 		s.generator = g

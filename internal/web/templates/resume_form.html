@@ -153,6 +153,19 @@
                 </form>
             </div>
         </div>
+        <div class="card shadow-sm mb-3 border-primary-subtle">
+            <div class="card-body p-4">
+                <h2 id="section-cover-letter" class="h5 mb-2">Generate a cover letter with Gemini</h2>
+                <p class="text-body-secondary">Gemini uses the saved version of this resume and the job description.
+                    Save any resume edits first. The letter is temporary, so copy it before leaving.</p>
+                <form method="post" action="/resumes/{{.ID}}/cover-letter">
+                    <label class="form-label" for="cover-prompt">Job description or link</label>
+                    <textarea class="form-control mb-2" id="cover-prompt" name="prompt" rows="6" required
+                        placeholder="Paste a job description or a link to it.">{{.CoverPrompt}}</textarea>
+                    <button class="btn btn-primary" type="submit">Generate cover letter</button>
+                </form>
+            </div>
+        </div>
         {{end}}{{end}}
 
         {{if .ID}}
@@ -275,6 +288,7 @@
     <li class="nav-item"><a class="nav-link py-1 px-2" href="#section-skills">Skills</a></li>
     <li class="nav-item"><a class="nav-link py-1 px-2" href="#section-comments">Comments</a></li>
     {{if and .ID .AIAvailable}}<li class="nav-item"><a class="nav-link py-1 px-2" href="#section-tailor">Tailor with Gemini</a></li>{{end}}
+    {{if and .ID .AIAvailable}}<li class="nav-item"><a class="nav-link py-1 px-2" href="#section-cover-letter">Cover letter</a></li>{{end}}
     {{if .ID}}<li class="nav-item"><a class="nav-link py-1 px-2" href="#section-print">Print</a></li>{{end}}
 </ul>
 {{end}}

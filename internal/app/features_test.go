@@ -5,6 +5,7 @@ import (
 	"context"
 	"errors"
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/google/uuid"
@@ -66,6 +67,9 @@ func TestGeminiFeatureGatesTailoring(t *testing.T) {
 		if !errors.As(err, &inputErr) {
 			t.Fatalf("err = %v, want an InputError", err)
 		}
+		if _, err := svc.StartCoverLetter(ctx, user, id, "Go job"); err == nil {
+			t.Fatal("cover letter started without the feature")
+		}
 	}
 	if gen.calls != 0 {
 		t.Fatal("generator called without the feature")
@@ -77,12 +81,35 @@ func TestGeminiFeatureGatesTailoring(t *testing.T) {
 	if !svc.AIAvailableFor(ctx, user) {
 		t.Fatal("Gemini unavailable after the feature is enabled")
 	}
+	if _, err := svc.StartCoverLetter(ctx, user, id, " "); err == nil {
+		t.Fatal("empty job description accepted")
+	}
+	if _, err := svc.StartCoverLetter(ctx, user, id, strings.Repeat("x", maxPromptLength+1)); err == nil {
+		t.Fatal("oversized job description accepted")
+	}
+	other, err := svc.SignIn(ctx, auth.Identity{Provider: "test", ProviderUserID: uuid.NewString(), Name: "Other"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := st.SetFeature(ctx, other.ID, FeatureGemini, true); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := svc.StartCoverLetter(ctx, other, id, "Go job"); !errors.Is(err, store.ErrNotFound) {
+		t.Fatalf("other user generated a letter from resume: %v", err)
+	}
 	jobID, err := svc.StartTailor(ctx, user, id, "Emphasise Go.")
 	if err != nil {
 		t.Fatal(err)
 	}
 	if job := waitForTailoring(t, svc, user, jobID); job.Status != TailoringDone {
 		t.Fatalf("job status = %q, error %q", job.Status, job.Error)
+	}
+	letterID, err := svc.StartCoverLetter(ctx, user, id, "Go job")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if job := waitForTailoring(t, svc, user, letterID); job.Status != TailoringDone || job.Letter == "" {
+		t.Fatalf("cover letter job = %+v", job)
 	}
 
 	if err := st.SetFeature(ctx, user.ID, FeatureGemini, false); err != nil {

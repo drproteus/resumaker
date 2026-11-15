@@ -37,6 +37,16 @@ func TestTailoringPageRendersStates(t *testing.T) {
 	if !strings.Contains(failed, "Gemini could not generate a resume.") || strings.Contains(failed, "data-tailoring ") {
 		t.Error("failed page did not show the error")
 	}
+
+	letter := render(app.Tailoring{ID: "job1", Kind: "cover-letter", Status: app.TailoringDone, Letter: "Dear <team>,\nHello."})
+	for _, want := range []string{"Your cover letter", "Dear &lt;team&gt;", "not saved", `<textarea`} {
+		if !strings.Contains(letter, want) {
+			t.Errorf("letter page missing %q", want)
+		}
+	}
+	if strings.Contains(letter, "data-tailoring ") {
+		t.Error("finished letter still polls")
+	}
 }
 
 func TestResumeListActions(t *testing.T) {

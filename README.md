@@ -51,7 +51,9 @@ education or skill groups, and use Duplicate on the resume list to start from an
 existing version.
 
 ## Tailoring with Gemini
-If `GEMINI_API_KEY` is set, the resume editor offers **Tailor with Gemini**. Paste a
+If `GEMINI_API_KEY` is set and the `gemini` feature is enabled for your account,
+the resume editor offers **Tailor with Gemini**. An administrator can enable it with
+`go run ./cmd/admin features enable gemini --email ADDRESS`. Paste a
 job description, one or more job posting links, skills to highlight, or any other
 instructions, and Gemini creates a new resume instead of changing the original. The
 generation runs in the background, so the browser stays responsive while it works. The
@@ -62,9 +64,20 @@ Users' own comments (to-dos, reminders) live in the same array and are never pri
 Job links are passed to Gemini through its URL context tool, so the server does not
 fetch user-supplied URLs.
 
+The editor also offers **Generate a cover letter with Gemini** using the saved resume
+and a job description or link. Review and edit the result and copy it elsewhere:
+letters are not saved and expire after one hour or a server restart. Reloading loses
+edits. Gemini can make mistakes, so verify all details before sending.
+
 `GEMINI_MODEL` defaults to `gemini-flash-latest`; set `GEMINI_API_BASE_URL` only when
 using a compatible proxy or a different API host. Resume JSON is sent to Google when
 you use this feature; leave `GEMINI_API_KEY` unset to keep it entirely local.
+
+## Roadmap
+
+- Save the job description used to generate a tailored resume or cover letter.
+- Explore associating cover letters with resumes.
+- Allow public sharing of resume HTML through an unlisted link.
 
 Five styles ship with the app: Classic, Modern, Sidebar, Comic (a Comic Sans homage)
 and Dingbats (Wingdings-adjacent). The Help page explains the editor, printing and

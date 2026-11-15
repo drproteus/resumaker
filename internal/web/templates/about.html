@@ -53,6 +53,8 @@
                             <li class="mb-1">Gemini's recommendations and action items appear as to-dos with a
                                 checkbox. Tick them off as you finish them.</li>
                             <li class="mb-1">Job links are read by Gemini, not fetched by this server.</li>
+                            <li class="mb-1">Generate a cover letter from a saved resume and job description on the edit
+                                page. Review and copy it: letters are temporary and are not saved.</li>
                             <li>Gemini can make mistakes. Check the new resume against your own experience before you
                                 send it.</li>
                         </ul>
@@ -91,7 +93,7 @@
                             own data key, wrapped by the server's master key; the plaintext only exists in memory
                             while a request needs it.</p>
                         {{if .AIAvailable}}
-                        <p class="mb-2">Tailor with Gemini sends the resume and your instructions to Google's Gemini
+                        <p class="mb-2">Gemini features send the resume and your instructions to Google's Gemini
                             API to generate the new version. Google's handling of that data is covered by its own
                             terms.</p>
                         {{end}}
